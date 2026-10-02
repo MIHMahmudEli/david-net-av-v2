@@ -1,0 +1,68 @@
+# Kaggle training config. Optimized for T4 GPU (16GB VRAM).
+# Used by scripts/train_kaggle.ipynb
+
+seed: 42
+run_id: run_001          # CHANGE for each new run
+
+# --- model ---
+d_model: 768
+n_heads: 8
+n_fusion_layers: 4
+dropout: 0.1
+use_sync: true
+use_disentangle: true
+compose_quadrant: false
+
+# --- backbones (real SSL encoders) ---
+video_backbone: videomae
+audio_backbone: wavlm
+video_model_name: MCG-NJU/videomae-base
+audio_model_name: microsoft/wavlm-base-plus
+freeze_blocks: 6
+freeze_feature_extractor: true
+
+# --- stage-1 warm start ---
+init_from: null
+
+# --- data ---
+n_frames: 16
+audio_len: 64000
+shard_root: null
+feature_cache: null
+# rel_paths in the manifest are relative to root_dir (the dir build_manifest.py was
+# pointed at, e.g. /kaggle/input/datasets/aicontentdetections/fakeavceleb-v1-2/FakeAVCeleb_v1.2)
+root_dir: /kaggle/input/datasets/aicontentdetections/fakeavceleb-v1-2/FakeAVCeleb_v1.2
+train_manifest: /kaggle/working/splits/fakeavceleb/train.jsonl   # SUBJECT-DISJOINT train split
+val_manifest: /kaggle/working/splits/fakeavceleb/val.jsonl
+
+# --- missing-modality ---
+modality_dropout: 0.15
+
+# --- optimization (T4-friendly) ---
+batch_size: 4
+grad_accum_steps: 4            # effective batch 16
+num_workers: 4
+epochs: 10
+lr: 1.0e-4
+lr_encoder: 1.0e-5
+weight_decay: 1.0e-4
+max_grad_norm: 1.0
+warmup_epochs: 1
+gradient_checkpointing: true
+augment: true
+nan_patience: 5                # consecutive non-finite steps before restoring the last snapshot
+max_nan_restores: 3            # after this many restores the run raises (no silent AUC=0.5 runs)
+log_every: 25
+out_dir: runs
+
+# --- HF backup (crash-proof) ---
+local_dir: /kaggle/working
+
+# --- loss weights ---
+loss_weights:
+  v: 1.0
+  a: 1.0
+  quad: 0.5
+  loc: 0.5
+  sync: 0.1
+  disentangle: 0.1

@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: davidnet-api
+    runtime: docker
+    dockerfilePath: api/Dockerfile
+    plan: free
+    region: oregon
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHONPATH
+        value: /app
+      - key: DAVID_CONFIG
+        value: /app/configs/david_net.yaml
+      - key: DAVID_HF_REPO
+        value: MIHMahmudEli/davidnet-q1-experiments
+      - key: DAVID_HF_SUBFOLDER
+        value: experiments/EXP_011_davidnet_s42/best_model

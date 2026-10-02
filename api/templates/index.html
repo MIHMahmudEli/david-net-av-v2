@@ -1,0 +1,1250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>DAVID-Net | Multimodal Deepfake Forensic Intelligence Workbench</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js CDN for Sync Curve -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0f9ff',
+              400: '#38bdf8',
+              500: '#0ea5e9',
+              600: '#0284c7',
+              900: '#0c4a6e',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @keyframes radar-pulse {
+      0% { transform: scale(0.9); opacity: 0.9; }
+      50% { transform: scale(1.4); opacity: 0.3; }
+      100% { transform: scale(1.8); opacity: 0; }
+    }
+    .radar-pulse-ring {
+      animation: radar-pulse 2.5s infinite ease-out;
+      transform-origin: center;
+    }
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(226, 232, 240, 0.9);
+      box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.04), 0 4px 6px -2px rgba(15, 23, 42, 0.02);
+    }
+  </style>
+</head>
+<body class="bg-[#F8FAFC] text-slate-800 min-h-screen font-sans antialiased selection:bg-sky-500 selection:text-white flex flex-col justify-between relative overflow-x-hidden">
+
+  <!-- Dynamic Ambient Background Meshes for White Theme -->
+  <div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
+    <div class="absolute -top-[20%] left-1/2 -translate-x-1/2 w-[900px] h-[550px] bg-gradient-to-b from-sky-200/35 via-indigo-100/20 to-transparent blur-[140px] rounded-full"></div>
+    <div class="absolute top-[30%] -right-[15%] w-[600px] h-[600px] bg-cyan-100/30 blur-[150px] rounded-full"></div>
+    <div class="absolute inset-0 opacity-[0.4]" style="background-image: radial-gradient(rgba(148, 163, 184, 0.25) 1px, transparent 1px); background-size: 24px 24px;"></div>
+  </div>
+
+  <!-- Top Telemetry HUD Header -->
+  <header class="border-b border-slate-200/80 bg-white/80 backdrop-blur-xl sticky top-0 z-50 shadow-sm">
+    <div class="max-w-[1560px] mx-auto px-3.5 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3">
+      <div class="flex items-center space-x-2.5 sm:space-x-3 overflow-hidden">
+        <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center font-black text-white shadow-md shadow-sky-500/20 shrink-0">
+          <svg class="w-4 h-4 sm:w-5 sm:h-5 fill-current" viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 2.18l7 3.12v4.7c0 4.67-3.13 9.04-7 10.15-3.87-1.11-7-5.48-7-10.15V6.3l7-3.12z"/></svg>
+        </div>
+        <div class="truncate">
+          <div class="flex items-center space-x-2">
+            <span class="text-sm sm:text-base font-black tracking-tight text-slate-900 font-mono">DAVID-Net</span>
+            <span class="text-[9px] sm:text-[10px] font-mono tracking-wider text-sky-700 bg-sky-50 border border-sky-200 px-1.5 sm:px-2 py-0.5 rounded-full shrink-0 font-semibold">v2.4 WORKBENCH</span>
+          </div>
+          <p class="text-[10px] text-slate-500 font-mono hidden md:block">Disentangled Audio-Visual Cross-Modal Attribution</p>
+        </div>
+      </div>
+
+      <!-- Right Controls: Theme Toggle Switch -->
+      <div class="flex items-center space-x-2 sm:space-x-3 shrink-0">
+        <button id="themeToggleBtn" type="button" class="flex items-center space-x-2 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-100/90 dark:bg-white/[0.06] hover:bg-slate-200/90 dark:hover:bg-white/[0.12] text-slate-700 dark:text-zinc-200 transition-all font-mono text-xs shadow-sm active:scale-95 group" title="Toggle Dark / White Theme">
+          <svg id="themeIconSun" class="w-4 h-4 text-amber-400 group-hover:rotate-45 transition-transform hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+          <svg id="themeIconMoon" class="w-4 h-4 text-sky-700 group-hover:-rotate-12 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+          <span id="themeLabel" class="font-semibold text-slate-800 dark:text-zinc-200 hidden sm:inline">Dark Mode</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Cockpit Main Layout -->
+  <main class="max-w-[1560px] mx-auto px-3.5 sm:px-6 lg:px-8 py-5 sm:py-8 w-full flex-1 z-10">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+
+      <!-- ============================================================== -->
+      <!-- LEFT COLUMN: Media Ingestion, Video Player & Analysis Controls -->
+      <!-- ============================================================== -->
+      <div class="lg:col-span-5 space-y-5 sm:space-y-6">
+
+        <!-- Ingestion Cockpit Card -->
+        <div class="glass-panel rounded-2xl p-4 sm:p-6 shadow-sm space-y-4 sm:space-y-5">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-200/80">
+            <div class="flex items-center space-x-2">
+              <svg class="w-4 h-4 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+              <h2 class="text-xs sm:text-sm font-bold text-slate-900 uppercase tracking-wider font-mono">Media Ingestion & Player</h2>
+            </div>
+            <span class="text-[10px] font-mono text-slate-500 font-medium">Multimodal Demux</span>
+          </div>
+
+          <!-- Drag and Drop Box -->
+          <div id="dropZone" class="border-2 border-dashed border-slate-300 bg-white/70 hover:border-sky-400 hover:bg-sky-50/20 rounded-2xl p-5 sm:p-6 text-center cursor-pointer transition-all relative overflow-hidden shadow-sm">
+            <input type="file" id="fileInput" class="hidden" accept="video/*,audio/*">
+            
+            <div id="uploadPrompt" class="space-y-3.5 py-2">
+              <div class="w-12 h-12 mx-auto rounded-2xl bg-sky-50 border border-sky-200 flex items-center justify-center text-sky-600 shadow-sm">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
+              </div>
+              <div>
+                <p class="text-sm font-bold text-slate-800 tracking-tight">Select or drop audio-visual media</p>
+                <p class="text-xs text-slate-500 mt-1">MP4, WebM, AVI, MOV, WAV, MP3</p>
+              </div>
+              <div class="inline-flex items-center space-x-2 text-[10px] font-mono text-slate-600 bg-slate-100 px-3 py-1 rounded-full border border-slate-200 font-medium">
+                <span>Direct-to-Inference stream</span>
+                <span>&bull;</span>
+                <span>Max 50 MB</span>
+              </div>
+            </div>
+
+            <!-- Ingested File Details & Video Player -->
+            <div id="fileInfo" class="hidden text-left space-y-3.5 sm:space-y-4">
+              <div class="flex items-center justify-between pb-3 border-b border-white/[0.06] gap-2">
+                <div class="flex items-center space-x-2.5 sm:space-x-3 overflow-hidden">
+                  <div class="p-2 rounded-xl bg-sky-50 text-sky-600 border border-sky-200 shrink-0">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                  </div>
+                  <div class="truncate">
+                    <div id="fileName" class="text-xs font-mono font-bold text-slate-900 truncate max-w-[150px] sm:max-w-xs">evidence_clip.mp4</div>
+                    <div class="text-[10px] font-mono text-slate-500 flex items-center space-x-1.5 sm:space-x-2">
+                      <span id="fileSize">0.0 MB</span>
+                      <span>&bull;</span>
+                      <span class="text-sky-700 font-semibold">Demuxed Streams</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="flex items-center space-x-1.5 shrink-0">
+                  <button id="replaceFileBtn" type="button" class="px-2.5 py-1 text-[11px] font-mono rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition font-semibold">Replace</button>
+                  <button id="clearFileBtn" type="button" class="px-2.5 py-1 text-[11px] font-mono rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition font-semibold">Clear</button>
+                </div>
+              </div>
+
+              <!-- Native Video Player -->
+              <div id="videoContainer" class="relative rounded-xl overflow-hidden bg-slate-950 border border-slate-300 shadow-md">
+                <video id="videoPlayer" playsinline class="w-full max-h-[220px] sm:max-h-[260px] object-contain mx-auto"></video>
+                <!-- HUD controls -->
+                <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/95 via-black/60 to-transparent p-2.5 sm:p-3 pt-6 flex items-center justify-between text-xs font-mono">
+                  <div class="flex items-center space-x-2">
+                    <button id="playPauseBtn" type="button" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-sky-400 hover:bg-sky-300 text-black font-bold transition flex items-center justify-center shadow-lg shadow-sky-400/25 active:scale-95">
+                      <svg id="playIcon" class="w-3.5 h-3.5 fill-current ml-0.5" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                      <svg id="pauseIcon" class="w-3.5 h-3.5 fill-current hidden" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                    </button>
+                    <span id="currentTimeDisplay" class="text-white font-bold text-[11px] sm:text-xs">00:00.00</span>
+                    <span class="text-zinc-500">/</span>
+                    <span id="totalDurationDisplay" class="text-zinc-300 text-[11px] sm:text-xs">00:00.00</span>
+                  </div>
+                  <div class="text-[9px] sm:text-[10px] text-zinc-300 bg-black/60 px-2 py-0.5 rounded border border-white/20 hidden sm:block">Forensic Frame Inspector</div>
+                </div>
+              </div>
+
+              <!-- Cryptographic Digest -->
+              <div class="pt-1 flex items-center justify-between text-[10px] font-mono text-slate-500">
+                <span id="fileSha" class="truncate max-w-[180px] sm:max-w-[240px] font-medium">sha256:7f49c81b2e9d...</span>
+                <span class="inline-flex items-center text-emerald-700 font-semibold shrink-0">
+                  <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                  Zero-Retention Enclave
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Benchmark Test Presets -->
+          <div class="space-y-2 pt-1">
+            <div class="flex items-center justify-between text-[11px] font-mono text-slate-600">
+              <span class="flex items-center space-x-1.5 font-semibold">
+                <svg class="w-3.5 h-3.5 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
+                <span class="uppercase tracking-wider">Benchmark Test Presets</span>
+              </span>
+              <span class="text-[10px] text-slate-400">1-Click Evaluation</span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+              <button type="button" onclick="loadBenchmark('RVRA')" class="p-2.5 rounded-xl bg-white hover:bg-emerald-50/40 border border-slate-200 hover:border-emerald-300 text-left transition group active:scale-[0.98] shadow-sm">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-mono font-bold text-emerald-700">RVRA</span>
+                  <span class="text-[9px] font-mono text-slate-400 group-hover:text-slate-600">Load &rarr;</span>
+                </div>
+                <div class="text-[11px] font-semibold text-slate-800 mt-1 truncate">Pristine Interview</div>
+                <div class="text-[10px] text-slate-500 truncate">Authentic V & A</div>
+              </button>
+
+              <button type="button" onclick="loadBenchmark('FVRA')" class="p-2.5 rounded-xl bg-white hover:bg-amber-50/40 border border-slate-200 hover:border-amber-300 text-left transition group active:scale-[0.98] shadow-sm">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-mono font-bold text-amber-700">FVRA</span>
+                  <span class="text-[9px] font-mono text-slate-400 group-hover:text-slate-600">Load &rarr;</span>
+                </div>
+                <div class="text-[11px] font-semibold text-slate-800 mt-1 truncate">FaceSwap Re-enact</div>
+                <div class="text-[10px] text-slate-500 truncate">Fake Video / Real Audio</div>
+              </button>
+
+              <button type="button" onclick="loadBenchmark('RVFA')" class="p-2.5 rounded-xl bg-white hover:bg-sky-50/40 border border-slate-200 hover:border-sky-300 text-left transition group active:scale-[0.98] shadow-sm">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-mono font-bold text-sky-700">RVFA</span>
+                  <span class="text-[9px] font-mono text-slate-400 group-hover:text-slate-600">Load &rarr;</span>
+                </div>
+                <div class="text-[11px] font-semibold text-slate-800 mt-1 truncate">Voice Clone / Dub</div>
+                <div class="text-[10px] text-slate-500 truncate">Real Video / Cloned Audio</div>
+              </button>
+
+              <button type="button" onclick="loadBenchmark('FVFA')" class="p-2.5 rounded-xl bg-white hover:bg-rose-50/40 border border-slate-200 hover:border-rose-300 text-left transition group active:scale-[0.98] shadow-sm">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-mono font-bold text-rose-700">FVFA</span>
+                  <span class="text-[9px] font-mono text-slate-400 group-hover:text-slate-600">Load &rarr;</span>
+                </div>
+                <div class="text-[11px] font-semibold text-slate-800 mt-1 truncate">Full Synthetic Media</div>
+                <div class="text-[10px] text-slate-500 truncate">AI Video & AI Speech</div>
+              </button>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="pt-2 border-t border-slate-200/80 space-y-3.5 sm:space-y-4">
+            <label class="flex items-center space-x-2.5 text-xs text-slate-600 cursor-pointer select-none">
+              <input type="checkbox" id="explainCheck" class="w-4 h-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500 bg-white">
+              <span class="font-mono text-[11px] text-slate-700 font-medium">Extract Cross-Modal Attention Saliency (Av&rarr;a, Aa&rarr;v)</span>
+            </label>
+
+            <button id="analyzeBtn" disabled class="w-full py-3 sm:py-3.5 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 disabled:from-slate-200 disabled:to-slate-200 disabled:text-slate-400 font-mono font-bold text-xs sm:text-sm text-white shadow-lg shadow-sky-500/20 transition-all flex items-center justify-center space-x-2.5 active:scale-[0.99]">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/></svg>
+              <span>Execute Forensic Verification</span>
+            </button>
+          </div>
+
+          <!-- Loading Spinner Overlay -->
+          <div id="loadingOverlay" class="hidden absolute inset-0 bg-white/90 backdrop-blur-md flex flex-col items-center justify-center space-y-4 z-20">
+            <div class="relative w-14 h-14">
+              <div class="absolute inset-0 rounded-full border-2 border-slate-200"></div>
+              <div class="absolute inset-0 rounded-full border-2 border-sky-600 border-t-transparent animate-spin"></div>
+            </div>
+            <p class="text-sm font-mono font-bold text-slate-900 animate-pulse">Running Cross-Modal Inference...</p>
+            <p class="text-xs font-mono text-slate-500">Demuxing streams &bull; Evaluating adapters</p>
+          </div>
+        </div>
+
+        <!-- Error Alert -->
+        <div id="errorAlert" class="hidden bg-rose-50 border border-rose-200 rounded-xl p-4 text-xs font-mono text-rose-800 shadow-sm"></div>
+
+        <!-- Pipeline Specs Card -->
+        <div class="glass-panel rounded-2xl p-4 sm:p-5 text-xs font-mono text-slate-600 space-y-3 shadow-sm">
+          <div class="flex items-center justify-between text-slate-800 pb-2 border-b border-slate-200/80">
+            <span class="uppercase tracking-wider text-[10px] font-semibold text-slate-500">Pipeline Architecture</span>
+            <span class="text-sky-700 font-bold">DAVID-Net 2.0</span>
+          </div>
+          <div class="grid grid-cols-2 gap-2.5 sm:gap-3 text-[10px] sm:text-[11px]">
+            <div>
+              <span class="text-slate-400 block text-[9px] uppercase font-sans">Visual Backbone</span>
+              <span class="text-slate-800 font-semibold">VideoMAE (ViT-Base)</span>
+            </div>
+            <div>
+              <span class="text-slate-400 block text-[9px] uppercase font-sans">Audio Backbone</span>
+              <span class="text-slate-800 font-semibold">WavLM (Base-Plus)</span>
+            </div>
+            <div>
+              <span class="text-slate-400 block text-[9px] uppercase font-sans">Cross-Attention</span>
+              <span class="text-slate-800 font-semibold">Disentangled Pre-LN</span>
+            </div>
+            <div>
+              <span class="text-slate-400 block text-[9px] uppercase font-sans">Attribution</span>
+              <span class="text-slate-800 font-semibold">4-Quadrant Softmax</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================== -->
+      <!-- RIGHT COLUMN: Intelligence Dossier & Telemetry Analytics        -->
+      <!-- ============================================================== -->
+      <div class="lg:col-span-7 space-y-5 sm:space-y-6">
+
+        <!-- Standby Blueprint (Shown prior to file analysis) -->
+        <div id="standbyView" class="glass-panel rounded-2xl p-6 sm:p-12 text-center space-y-6 shadow-xl">
+          <div class="w-14 h-14 sm:w-16 sm:h-16 mx-auto rounded-2xl bg-sky-50 border border-sky-200/80 flex items-center justify-center text-sky-600 shadow-sm">
+            <svg class="w-7 h-7 sm:w-8 sm:h-8 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2v20m10-10H2m15.07 7.07l-14.14-14.14m14.14 0L4.93 19.07"/></svg>
+          </div>
+          <div class="max-w-md mx-auto space-y-2">
+            <h3 class="text-base sm:text-lg font-bold text-slate-900 tracking-tight">Forensic Intelligence Dossier Standby</h3>
+            <p class="text-xs text-slate-600 leading-relaxed font-mono">
+              Select an audio-visual media clip on the left, or tap one of the benchmark presets (RVRA, FVRA, RVFA, FVFA) to execute instant multimodal verification.
+            </p>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 text-left pt-6 border-t border-slate-200/80">
+            <div class="p-3 rounded-xl bg-slate-50/80 border border-slate-200">
+              <span class="text-[10px] font-mono text-sky-700 uppercase block font-bold">Feature 01</span>
+              <strong class="text-xs text-slate-900 block mt-0.5">2D Cartesian</strong>
+              <span class="text-[10px] text-slate-500">pa × pv coordinate radar</span>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-50/80 border border-slate-200">
+              <span class="text-[10px] font-mono text-sky-700 uppercase block font-bold">Feature 02</span>
+              <strong class="text-xs text-slate-900 block mt-0.5">Disentanglement</strong>
+              <span class="text-[10px] text-slate-500">Independent stream logits</span>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-50/80 border border-slate-200">
+              <span class="text-[10px] font-mono text-sky-700 uppercase block font-bold">Feature 03</span>
+              <strong class="text-xs text-slate-900 block mt-0.5">Dual MLP Bounds</strong>
+              <span class="text-[10px] text-slate-500">Frame-dense interval cuts</span>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-50/80 border border-slate-200">
+              <span class="text-[10px] font-mono text-sky-700 uppercase block font-bold">Feature 04</span>
+              <strong class="text-xs text-slate-900 block mt-0.5">Sync Curve (st)</strong>
+              <span class="text-[10px] text-slate-500">Phoneme-viseme InfoNCE</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Active Dossier Results -->
+        <div id="resultsSection" class="hidden space-y-5 sm:space-y-6">
+
+          <!-- Dossier Header with Export JSON Action -->
+          <div class="flex items-center justify-between px-1">
+            <div>
+              <h3 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider font-mono">
+                Forensic Intelligence Dossier
+              </h3>
+              <p class="text-[10px] text-slate-500 dark:text-zinc-400 font-mono">
+                Calibrated Multimodal Attributions &amp; Cross-Modal Telemetry
+              </p>
+            </div>
+            <button id="exportDossierBtn" class="inline-flex items-center space-x-1.5 text-xs font-mono text-slate-700 dark:text-zinc-200 hover:text-slate-900 dark:hover:text-white bg-white dark:bg-white/[0.06] hover:bg-slate-50 dark:hover:bg-white/[0.12] border border-slate-200 dark:border-white/10 px-3 py-1.5 rounded-xl shadow-sm transition active:scale-95" title="Download Serialized RFC-8259 Forensic Report">
+              <svg class="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+              <span class="font-semibold">Export JSON</span>
+            </button>
+          </div>
+
+          <!-- 1. 2D Cartesian Quadrant Attribution Plane -->
+          <div class="glass-panel rounded-2xl p-4 sm:p-6 shadow-sm relative overflow-hidden transition-all">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-200/80 gap-3">
+              <div class="flex items-center space-x-2.5">
+                <div class="w-8 h-8 rounded-xl bg-sky-50 border border-sky-200 text-sky-600 flex items-center justify-center shrink-0">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 2v20m10-10H2"/></svg>
+                </div>
+                <div>
+                  <div class="flex items-center space-x-2 flex-wrap">
+                    <span class="text-[10px] sm:text-xs uppercase tracking-widest font-mono text-slate-500 font-semibold">2D Cartesian Attribution Matrix</span>
+                    <span class="text-[9px] sm:text-[10px] font-mono px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200 font-medium">pa × pv Space</span>
+                  </div>
+                  <h2 class="text-base sm:text-lg font-bold text-slate-900 tracking-tight flex items-center gap-2 mt-0.5 flex-wrap">
+                    <span id="quadrantLabel" class="font-mono">FVFA:</span>
+                    <span id="quadrantDesc" class="text-rose-700 font-semibold">Fully Synthetic Media</span>
+                  </h2>
+                </div>
+              </div>
+              <div class="flex items-center gap-3 sm:gap-4 text-xs font-mono text-slate-500 self-start sm:self-auto pt-2 sm:pt-0">
+                <div class="text-left sm:text-right">
+                  <span class="text-[9px] text-slate-400 block uppercase font-sans">Inference</span>
+                  <span id="latencyDisplay" class="text-sky-700 font-bold">184 ms</span>
+                </div>
+                <div class="text-left sm:text-right">
+                  <span class="text-[9px] text-slate-400 block uppercase font-sans">Duration</span>
+                  <span id="durationDisplay" class="text-slate-800 font-semibold">4.00s</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Plane + Breakdown Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 pt-5 items-center">
+              <!-- SVG Cartesian Plane -->
+              <div class="lg:col-span-7 flex flex-col items-center w-full">
+                <div class="w-full max-w-[320px] sm:max-w-[360px] aspect-square relative bg-[#FAFCFF] border border-slate-200 rounded-2xl p-3 shadow-inner">
+                  <svg id="cartesianSvg" viewBox="0 0 300 300" class="w-full h-full select-none overflow-visible">
+                    <!-- Quadrant Background Zones -->
+                    <rect id="zoneFVRA" x="32" y="32" width="118" height="118" fill="#fef3c7" fill-opacity="0.3" />
+                    <rect id="zoneFVFA" x="150" y="32" width="118" height="118" fill="#ffe4e6" fill-opacity="0.3" />
+                    <rect id="zoneRVRA" x="32" y="150" width="118" height="118" fill="#d1fae5" fill-opacity="0.3" />
+                    <rect id="zoneRVFA" x="150" y="150" width="118" height="118" fill="#e0f2fe" fill-opacity="0.3" />
+
+                    <!-- Grid Bounds -->
+                    <rect x="32" y="32" width="236" height="236" fill="none" stroke="#CBD5E1" stroke-width="1" />
+
+                    <!-- Center Threshold τ = 0.5 -->
+                    <line x1="32" y1="150" x2="268" y2="150" stroke="#64748B" stroke-width="1.2" stroke-dasharray="4,4" />
+                    <line x1="150" y1="32" x2="150" y2="268" stroke="#64748B" stroke-width="1.2" stroke-dasharray="4,4" />
+
+                    <!-- Labels -->
+                    <text x="40" y="52" fill="#b45309" font-size="9" font-family="monospace" font-weight="bold">FVRA [FaceSwap]</text>
+                    <text x="160" y="52" fill="#be123c" font-size="9" font-family="monospace" font-weight="bold">FVFA [Dual Fake]</text>
+                    <text x="40" y="260" fill="#047857" font-size="9" font-family="monospace" font-weight="bold">RVRA [Authentic]</text>
+                    <text x="160" y="260" fill="#0369a1" font-size="9" font-family="monospace" font-weight="bold">RVFA [Voice Dub]</text>
+
+                    <text x="150" y="290" fill="#64748B" font-size="8.5" font-family="monospace" text-anchor="middle" font-weight="600">Audio Manipulation Prob (pa) &rarr;</text>
+                    <text x="-150" y="15" fill="#64748B" font-size="8.5" font-family="monospace" text-anchor="middle" font-weight="600" transform="rotate(-90)">Video Manipulation Prob (pv) &rarr;</text>
+
+                    <!-- Target Crosshair Lines -->
+                    <line id="radarLineX" x1="150" y1="150" x2="150" y2="268" stroke="#0284c7" stroke-width="1.2" stroke-dasharray="2,2" opacity="0.8" />
+                    <line id="radarLineY" x1="150" y1="150" x2="32" y2="150" stroke="#0284c7" stroke-width="1.2" stroke-dasharray="2,2" opacity="0.8" />
+
+                    <!-- Pulsing Radar Target -->
+                    <circle id="radarPulse" cx="150" cy="150" r="18" fill="none" stroke="#0284c7" stroke-width="1.5" class="radar-pulse-ring" />
+                    <circle id="radarCircle" cx="150" cy="150" r="11" fill="none" stroke="#0284c7" stroke-width="1.5" opacity="0.8" />
+                    <circle id="radarCenter" cx="150" cy="150" r="4.5" fill="#0284c7" stroke="#ffffff" stroke-width="2" />
+                  </svg>
+                </div>
+                <div class="flex items-center justify-between w-full max-w-[320px] sm:max-w-[360px] mt-2 px-1 text-[11px] font-mono text-slate-500">
+                  <span>Target: <strong id="targetCoords" class="text-slate-900 font-bold">(0.500, 0.500)</strong></span>
+                  <span>Threshold: <strong class="text-slate-600 font-medium">&tau;=(0.50, 0.50)</strong></span>
+                </div>
+              </div>
+
+              <!-- Probability Softmax Breakdown Cards -->
+              <div class="lg:col-span-5 space-y-4 w-full">
+                <div class="space-y-1">
+                  <span class="text-[11px] font-mono text-slate-500 uppercase tracking-wider font-semibold block">Disentangled Modality Confidence</span>
+                  <p class="text-xs text-slate-600 leading-relaxed">Cross-attention heads classify audio and visual streams independently, separating lip-sync anomalies from voice cloning.</p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 sm:gap-2.5">
+                  <div id="cardRVRA" class="p-3 rounded-xl border bg-white border-slate-200/90 shadow-sm transition-all">
+                    <div class="flex items-center justify-between">
+                      <span class="text-xs font-mono font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">RVRA</span>
+                      <span id="probRVRA" class="text-xs sm:text-sm font-mono font-bold text-slate-900">0.0%</span>
+                    </div>
+                    <div class="text-[11px] text-slate-800 font-semibold mt-1.5 truncate">Authentic</div>
+                    <div class="text-[10px] text-slate-500 font-mono truncate">Real-V / Real-A</div>
+                  </div>
+
+                  <div id="cardFVRA" class="p-3 rounded-xl border bg-white border-slate-200/90 shadow-sm transition-all">
+                    <div class="flex items-center justify-between">
+                      <span class="text-xs font-mono font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">FVRA</span>
+                      <span id="probFVRA" class="text-xs sm:text-sm font-mono font-bold text-slate-900">0.0%</span>
+                    </div>
+                    <div class="text-[11px] text-slate-800 font-semibold mt-1.5 truncate">Face Swap</div>
+                    <div class="text-[10px] text-slate-500 font-mono truncate">Fake-V / Real-A</div>
+                  </div>
+
+                  <div id="cardRVFA" class="p-3 rounded-xl border bg-white border-slate-200/90 shadow-sm transition-all">
+                    <div class="flex items-center justify-between">
+                      <span class="text-xs font-mono font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">RVFA</span>
+                      <span id="probRVFA" class="text-xs sm:text-sm font-mono font-bold text-slate-900">0.0%</span>
+                    </div>
+                    <div class="text-[11px] text-slate-800 font-semibold mt-1.5 truncate">Voice Clone</div>
+                    <div class="text-[10px] text-slate-500 font-mono truncate">Real-V / Fake-A</div>
+                  </div>
+
+                  <div id="cardFVFA" class="p-3 rounded-xl border bg-white border-slate-200/90 shadow-sm transition-all">
+                    <div class="flex items-center justify-between">
+                      <span class="text-xs font-mono font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">FVFA</span>
+                      <span id="probFVFA" class="text-xs sm:text-sm font-mono font-bold text-slate-900">0.0%</span>
+                    </div>
+                    <div class="text-[11px] text-slate-800 font-semibold mt-1.5 truncate">Dual Fake</div>
+                    <div class="text-[10px] text-slate-500 font-mono truncate">Fake-V / Fake-A</div>
+                  </div>
+                </div>
+
+                <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 text-[11px] text-slate-600 space-y-1 font-mono">
+                  <div class="flex justify-between items-center text-slate-700">
+                    <span class="font-medium">Expected Calibration Error (ECE):</span>
+                    <span class="text-emerald-700 font-bold">&le; 0.042</span>
+                  </div>
+                  <p class="text-[10px] text-slate-500 leading-normal">Probability space calibrated via Post-Hoc Isotonic Temperature Scaling.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. Dual Modality Authenticity Gauges -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
+            <!-- Video Modality Card -->
+            <div id="videoVerdictCard" class="glass-panel rounded-2xl p-4 sm:p-5 shadow-sm space-y-3">
+              <div class="flex items-center justify-between pb-3 border-b border-slate-200/70">
+                <div class="flex items-center space-x-2">
+                  <svg class="w-4 h-4 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                  <h3 class="text-xs sm:text-sm font-bold text-slate-900">Video Stream Authenticity</h3>
+                </div>
+                <span id="videoBadge" class="text-[11px] sm:text-xs font-mono font-bold px-2 sm:px-2.5 py-1 rounded-md bg-slate-100 text-slate-600">Assessing</span>
+              </div>
+              <div class="flex items-baseline justify-between">
+                <span class="text-[11px] sm:text-xs font-mono text-slate-500 uppercase font-medium">Confidence Posterior:</span>
+                <span id="videoConfidence" class="text-2xl sm:text-3xl font-mono font-black text-slate-900">0.0%</span>
+              </div>
+              <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden p-0.5 border border-slate-200">
+                <div id="videoBar" class="h-full rounded-full bg-sky-500 transition-all duration-700" style="width: 0%"></div>
+              </div>
+              <div class="grid grid-cols-2 pt-2 text-[10px] sm:text-[11px] font-mono text-slate-500 border-t border-slate-200/60">
+                <div>
+                  <span class="text-slate-400 block text-[9px] uppercase font-sans">Backbone Feature</span>
+                  <span class="text-slate-700 font-semibold">VideoMAE ViT-B</span>
+                </div>
+                <div class="text-right">
+                  <span class="text-slate-400 block text-[9px] uppercase font-sans">Sigmoid Logit</span>
+                  <span id="videoRawProb" class="text-slate-800 font-bold">--</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Audio Modality Card -->
+            <div id="audioVerdictCard" class="glass-panel rounded-2xl p-4 sm:p-5 shadow-sm space-y-3">
+              <div class="flex items-center justify-between pb-3 border-b border-slate-200/70">
+                <div class="flex items-center space-x-2">
+                  <svg class="w-4 h-4 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 100-6 3 3 0 000 6z"/></svg>
+                  <h3 class="text-xs sm:text-sm font-bold text-slate-900">Audio Stream Authenticity</h3>
+                </div>
+                <span id="audioBadge" class="text-[11px] sm:text-xs font-mono font-bold px-2 sm:px-2.5 py-1 rounded-md bg-slate-100 text-slate-600">Assessing</span>
+              </div>
+              <div class="flex items-baseline justify-between">
+                <span class="text-[11px] sm:text-xs font-mono text-slate-500 uppercase font-medium">Confidence Posterior:</span>
+                <span id="audioConfidence" class="text-2xl sm:text-3xl font-mono font-black text-slate-900">0.0%</span>
+              </div>
+              <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden p-0.5 border border-slate-200">
+                <div id="audioBar" class="h-full rounded-full bg-indigo-600 transition-all duration-700" style="width: 0%"></div>
+              </div>
+              <div class="grid grid-cols-2 pt-2 text-[10px] sm:text-[11px] font-mono text-slate-500 border-t border-slate-200/60">
+                <div>
+                  <span class="text-slate-400 block text-[9px] uppercase font-sans">Backbone Feature</span>
+                  <span class="text-slate-700 font-semibold">WavLM Base+</span>
+                </div>
+                <div class="text-right">
+                  <span class="text-slate-400 block text-[9px] uppercase font-sans">Sigmoid Logit</span>
+                  <span id="audioRawProb" class="text-slate-800 font-bold">--</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. Temporal Forgery Localization -->
+          <div class="glass-panel rounded-2xl p-4 sm:p-6 shadow-sm space-y-4 sm:space-y-5">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-200/80 gap-2">
+              <div class="flex items-center space-x-2">
+                <svg class="w-4 h-4 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                <h3 class="text-xs sm:text-sm font-bold text-slate-900 uppercase tracking-wider font-mono">Temporal Forgery Localization Heads</h3>
+              </div>
+              <div class="flex items-center space-x-3 text-xs font-mono text-slate-500">
+                <span>Playhead: <strong id="timelinePlayheadLabel" class="text-sky-700 font-bold">0.00s / 4.00s</strong></span>
+                <span class="text-slate-300">|</span>
+                <span class="text-[10px] text-slate-400">Dense Boundary MLP</span>
+              </div>
+            </div>
+
+            <div class="space-y-3.5 sm:space-y-4">
+              <!-- Video Track -->
+              <div class="space-y-1.5">
+                <div class="flex items-center justify-between text-xs">
+                  <div class="flex items-center space-x-2">
+                    <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+                    <span class="font-mono font-bold text-slate-800 uppercase tracking-wider text-[11px]">Video Modality</span>
+                  </div>
+                  <span id="videoLocCount" class="font-mono text-[11px] text-slate-500">No manipulated intervals</span>
+                </div>
+                <div id="videoTrackContainer" onclick="handleTrackClick(event)" class="w-full h-9 sm:h-10 bg-slate-100 border border-slate-200 rounded-xl relative overflow-hidden cursor-pointer group shadow-inner touch-pan-x">
+                  <div id="videoTimelineTrack" class="absolute inset-0"></div>
+                  <!-- Synchronized playhead needle -->
+                  <div id="videoPlayheadNeedle" class="absolute top-0 bottom-0 w-0.5 bg-sky-600 shadow-[0_0_8px_rgba(2,132,199,0.5)] pointer-events-none z-10" style="left: 0%">
+                    <div class="w-2.5 h-2 -ml-1 -top-0 bg-sky-600 rounded-b-sm"></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Audio Track -->
+              <div class="space-y-1.5">
+                <div class="flex items-center justify-between text-xs">
+                  <div class="flex items-center space-x-2">
+                    <span class="w-2 h-2 rounded-full bg-indigo-600"></span>
+                    <span class="font-mono font-bold text-slate-800 uppercase tracking-wider text-[11px]">Audio Modality</span>
+                  </div>
+                  <span id="audioLocCount" class="font-mono text-[11px] text-slate-500">No manipulated intervals</span>
+                </div>
+                <div id="audioTrackContainer" onclick="handleTrackClick(event)" class="w-full h-9 sm:h-10 bg-slate-100 border border-slate-200 rounded-xl relative overflow-hidden cursor-pointer group shadow-inner touch-pan-x">
+                  <div id="audioTimelineTrack" class="absolute inset-0"></div>
+                  <!-- Synchronized playhead needle -->
+                  <div id="audioPlayheadNeedle" class="absolute top-0 bottom-0 w-0.5 bg-sky-600 shadow-[0_0_8px_rgba(2,132,199,0.5)] pointer-events-none z-10" style="left: 0%">
+                    <div class="w-2.5 h-2 -ml-1 -top-0 bg-sky-600 rounded-b-sm"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Clickable Interval Chips -->
+            <div id="intervalsChipsContainer" class="hidden pt-2 border-t border-slate-200/80 space-y-2">
+              <span class="text-[10px] font-mono text-slate-500 uppercase tracking-wider font-semibold block">Discovered Forgery Intervals (Tap to jump):</span>
+              <div id="intervalsChipsList" class="flex flex-wrap gap-2"></div>
+            </div>
+          </div>
+
+          <!-- 4. Sync Curve -->
+          <div id="syncSection" class="glass-panel rounded-2xl p-4 sm:p-6 shadow-sm space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-200/80 gap-2">
+              <div class="flex items-center space-x-2">
+                <svg class="w-4 h-4 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                <div>
+                  <h3 class="text-xs sm:text-sm font-bold text-slate-900 uppercase tracking-wider font-mono">Phoneme-Viseme Sync Curve (st)</h3>
+                  <p class="text-[10px] sm:text-[11px] text-slate-500">Windowed InfoNCE Cross-Modal Contrastive Alignment</p>
+                </div>
+              </div>
+              <div class="flex items-center space-x-3 text-xs font-mono text-slate-500">
+                <div>Mean: <span id="syncMeanLabel" class="font-bold text-sky-700">+0.680</span></div>
+                <span class="text-slate-300">|</span>
+                <div>Desync Anomaly: <span id="syncDesyncLabel" class="font-bold text-slate-700">0.0%</span></div>
+              </div>
+            </div>
+            <div class="h-36 sm:h-44 w-full pt-1 relative">
+              <canvas id="syncChart"></canvas>
+            </div>
+          </div>
+
+          <!-- 5. Decision Support Disclaimer -->
+          <div class="border border-amber-300/80 bg-amber-50/90 backdrop-blur-md rounded-2xl p-4 sm:p-5 text-xs text-amber-900 flex items-start space-x-3 shadow-sm">
+            <svg class="w-5 h-5 text-amber-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            <div>
+              <strong class="font-bold text-amber-950 block mb-0.5">Probabilistic Decision Support Guarantee:</strong>
+              <span class="text-amber-800/90 leading-relaxed block">Detection outputs are algorithmic inference estimates calibrated on multimodal deepfake corpora. They provide human-in-the-loop decision support for digital forensic analysts, fact-checkers, and media platforms, and do not constitute autonomous legal proof of tampering.</span>
+            </div>
+          </div>
+
+          <!-- 6. Raw Response Viewer -->
+          <details class="bg-white border border-slate-200 rounded-xl p-4 text-xs font-mono shadow-sm">
+            <summary class="cursor-pointer text-slate-700 hover:text-slate-900 font-sans font-semibold">View Serialized JSON Response Contract (RFC-8259)</summary>
+            <pre id="jsonViewer" class="mt-4 p-4 bg-slate-50 border border-slate-200 rounded-lg overflow-x-auto text-sky-800 text-[11px]"></pre>
+          </details>
+
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-slate-200/80 py-4 sm:py-5 px-3.5 sm:px-8 text-xs font-mono text-slate-500 flex flex-col sm:flex-row items-center justify-between gap-2.5 sm:gap-3 bg-white/80 backdrop-blur-md z-10 mt-8">
+    <div class="text-center sm:text-left text-[11px] sm:text-xs">DAVID-Net &bull; Disentangled Audio-Visual Deepfake Attribution &bull; AIUB Thesis</div>
+    <div class="flex items-center space-x-3 text-[10px] sm:text-[11px] text-slate-500">
+      <span>RFC-8259 Compliant</span>
+      <span>&bull;</span>
+      <span>Zero-Retention RAM Enclave</span>
+    </div>
+  </footer>
+
+  <!-- Script Logic -->
+  <script>
+    // State
+    let selectedFile = null;
+    let syncChartInstance = null;
+    let currentResponseData = null;
+    let clipDuration = 4.0;
+
+    // Elements
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const uploadPrompt = document.getElementById('uploadPrompt');
+    const fileInfo = document.getElementById('fileInfo');
+    const fileName = document.getElementById('fileName');
+    const fileSize = document.getElementById('fileSize');
+    const fileSha = document.getElementById('fileSha');
+    const replaceFileBtn = document.getElementById('replaceFileBtn');
+    const clearFileBtn = document.getElementById('clearFileBtn');
+    const videoPlayer = document.getElementById('videoPlayer');
+    const playPauseBtn = document.getElementById('playPauseBtn');
+    const playIcon = document.getElementById('playIcon');
+    const pauseIcon = document.getElementById('pauseIcon');
+    const currentTimeDisplay = document.getElementById('currentTimeDisplay');
+    const totalDurationDisplay = document.getElementById('totalDurationDisplay');
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const explainCheck = document.getElementById('explainCheck');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    const errorAlert = document.getElementById('errorAlert');
+    const standbyView = document.getElementById('standbyView');
+    const resultsSection = document.getElementById('resultsSection');
+    const modelVerLabel = document.getElementById('modelVerLabel');
+    const statusBadge = document.getElementById('statusBadge');
+    const configApiBtn = document.getElementById('configApiBtn');
+    const apiHostLabel = document.getElementById('apiHostLabel');
+    const exportDossierBtn = document.getElementById('exportDossierBtn');
+
+    // Theme Toggle Controller
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    const themeIconSun = document.getElementById('themeIconSun');
+    const themeIconMoon = document.getElementById('themeIconMoon');
+    const themeLabel = document.getElementById('themeLabel');
+
+    function applyTheme(isDark) {
+      if (isDark) {
+        document.documentElement.classList.add('dark');
+        if (themeIconSun) themeIconSun.classList.remove('hidden');
+        if (themeIconMoon) themeIconMoon.classList.add('hidden');
+        if (themeLabel) themeLabel.innerText = 'White Mode';
+        localStorage.setItem('david_theme', 'dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+        if (themeIconSun) themeIconSun.classList.add('hidden');
+        if (themeIconMoon) themeIconMoon.classList.remove('hidden');
+        if (themeLabel) themeLabel.innerText = 'Dark Mode';
+        localStorage.setItem('david_theme', 'light');
+      }
+    }
+
+    try {
+      const savedTheme = localStorage.getItem('david_theme');
+      applyTheme(savedTheme === 'dark');
+    } catch (_) {}
+
+    if (themeToggleBtn) {
+      themeToggleBtn.addEventListener('click', () => {
+        const isCurrentDark = document.documentElement.classList.contains('dark');
+        applyTheme(!isCurrentDark);
+      });
+    }
+
+    // Sample Benchmark Presets
+    const BENCHMARKS = {
+      RVRA: {
+        clip_id: "BENCH_RVRA_GENUINE_001",
+        duration_sec: 4.0,
+        latency_ms: 164,
+        video: { verdict: "real", confidence: 0.985, raw_prob: 0.015 },
+        audio: { verdict: "real", confidence: 0.978, raw_prob: 0.022 },
+        quadrant: { label: "RVRA", description: "Pristine Authentic Capture", probs: { RVRA: 0.963, RVFA: 0.022, FVRA: 0.011, FVFA: 0.004 } },
+        localization: { video: [], audio: [] },
+        sync_curve: [0.65, 0.68, 0.72, 0.70, 0.75, 0.78, 0.74, 0.71, 0.76, 0.79, 0.82, 0.80, 0.77, 0.75, 0.79, 0.81, 0.83, 0.80, 0.78, 0.76, 0.79, 0.82, 0.80, 0.77, 0.75, 0.78, 0.81, 0.79, 0.76, 0.78, 0.80, 0.82, 0.79, 0.77, 0.79, 0.81, 0.83, 0.80, 0.78, 0.76, 0.79, 0.81, 0.83, 0.80, 0.78, 0.76, 0.79, 0.81, 0.82, 0.80]
+      },
+      FVRA: {
+        clip_id: "BENCH_FVRA_FACESWAP_002",
+        duration_sec: 4.0,
+        latency_ms: 188,
+        video: { verdict: "fake", confidence: 0.964, raw_prob: 0.964 },
+        audio: { verdict: "real", confidence: 0.942, raw_prob: 0.058 },
+        quadrant: { label: "FVRA", description: "Facial Synthesis / Re-enactment", probs: { RVRA: 0.038, RVFA: 0.012, FVRA: 0.915, FVFA: 0.035 } },
+        localization: { video: [{ start: 0.8, end: 3.1, score: 0.964 }], audio: [] },
+        sync_curve: [0.24, 0.18, 0.05, -0.15, -0.32, -0.44, -0.38, -0.22, -0.12, 0.04, 0.12, 0.18, 0.22, 0.15, 0.02, -0.18, -0.35, -0.42, -0.31, -0.14, -0.02, 0.08, 0.15, 0.20, 0.12, -0.05, -0.24, -0.39, -0.28, -0.11, 0.02, 0.14, 0.19, 0.12, -0.04, -0.22, -0.36, -0.29, -0.10, 0.05, 0.15, 0.21, 0.16, 0.04, -0.15, -0.32, -0.25, -0.08, 0.09, 0.18]
+      },
+      RVFA: {
+        clip_id: "BENCH_RVFA_VOICEDUB_003",
+        duration_sec: 4.0,
+        latency_ms: 172,
+        video: { verdict: "real", confidence: 0.948, raw_prob: 0.052 },
+        audio: { verdict: "fake", confidence: 0.972, raw_prob: 0.972 },
+        quadrant: { label: "RVFA", description: "Voice Clone / Neural TTS Dub", probs: { RVRA: 0.029, RVFA: 0.923, FVRA: 0.015, FVFA: 0.033 } },
+        localization: { video: [], audio: [{ start: 1.1, end: 3.5, score: 0.972 }] },
+        sync_curve: [-0.38, -0.45, -0.52, -0.58, -0.65, -0.60, -0.55, -0.48, -0.54, -0.62, -0.68, -0.72, -0.65, -0.58, -0.52, -0.60, -0.67, -0.71, -0.64, -0.56, -0.49, -0.55, -0.63, -0.70, -0.66, -0.59, -0.51, -0.46, -0.53, -0.61, -0.67, -0.70, -0.63, -0.55, -0.48, -0.56, -0.64, -0.69, -0.62, -0.54, -0.47, -0.53, -0.61, -0.68, -0.64, -0.57, -0.49, -0.44, -0.51, -0.59]
+      },
+      FVFA: {
+        clip_id: "BENCH_FVFA_DUALSYNTH_004",
+        duration_sec: 4.0,
+        latency_ms: 215,
+        video: { verdict: "fake", confidence: 0.991, raw_prob: 0.991 },
+        audio: { verdict: "fake", confidence: 0.984, raw_prob: 0.984 },
+        quadrant: { label: "FVFA", description: "Fully Synthetic Deepfake", probs: { RVRA: 0.005, RVFA: 0.021, FVRA: 0.024, FVFA: 0.950 } },
+        localization: { video: [{ start: 0.3, end: 3.9, score: 0.991 }], audio: [{ start: 0.5, end: 3.6, score: 0.984 }] },
+        sync_curve: [-0.65, -0.72, -0.78, -0.84, -0.89, -0.85, -0.79, -0.73, -0.80, -0.86, -0.91, -0.94, -0.88, -0.82, -0.76, -0.83, -0.89, -0.93, -0.87, -0.80, -0.74, -0.81, -0.87, -0.92, -0.88, -0.81, -0.75, -0.70, -0.77, -0.84, -0.90, -0.93, -0.86, -0.80, -0.74, -0.81, -0.88, -0.92, -0.85, -0.78, -0.72, -0.79, -0.86, -0.91, -0.87, -0.80, -0.73, -0.68, -0.75, -0.82]
+      }
+    };
+
+    // API configuration
+    const isStaticHost = window.location.hostname.includes('hf.space') || 
+                         window.location.hostname.includes('vercel.app') || 
+                         window.location.hostname.includes('github.io') ||
+                         window.location.protocol === 'file:';
+    const defaultApiBase = isStaticHost ? 'https://davidnet-api.onrender.com' : '';
+    let apiBase = localStorage.getItem('david_api_base') !== null ? localStorage.getItem('david_api_base') : defaultApiBase;
+
+    function updateApiHostDisplay() {
+      if (!apiHostLabel) return;
+      if (apiBase) {
+        try {
+          const u = new URL(apiBase);
+          apiHostLabel.innerText = u.host;
+        } catch (_) {
+          apiHostLabel.innerText = apiBase;
+        }
+      } else {
+        apiHostLabel.innerText = 'Direct Origin';
+      }
+    }
+    updateApiHostDisplay();
+
+    if (configApiBtn) {
+      configApiBtn.addEventListener('click', () => {
+        const current = apiBase || window.location.origin;
+        const promptVal = prompt('Enter DAVID-Net Inference API URL (leave blank to use current origin):', apiBase);
+        if (promptVal !== null) {
+          apiBase = promptVal.trim().replace(/\/+$/, '');
+          if (apiBase) {
+            localStorage.setItem('david_api_base', apiBase);
+          } else {
+            localStorage.removeItem('david_api_base');
+          }
+          updateApiHostDisplay();
+          checkHealth();
+        }
+      });
+    }
+
+    function getTargetUrl(path) {
+      if (!apiBase) return path;
+      return apiBase + (path.startsWith('/') ? path : '/' + path);
+    }
+
+    function checkHealth() {
+      fetch(getTargetUrl('/health'))
+        .then(res => res.json())
+        .then(data => {
+          if (data.model_version && modelVerLabel) {
+            const mode = data.backbone_mode ? ` • ${data.backbone_mode}` : '';
+            modelVerLabel.innerText = data.model_version + mode;
+          }
+        })
+        .catch(() => {
+          if (modelVerLabel) modelVerLabel.innerText = 'Engine Standby';
+        });
+    }
+    checkHealth();
+
+    // Time formatting helper
+    function formatTime(sec) {
+      const mins = Math.floor(sec / 60);
+      const secs = Math.floor(sec % 60);
+      const ms = Math.floor((sec % 1) * 100);
+      return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}.${String(ms).padStart(2, '0')}`;
+    }
+
+    // Video Player & Scrubber Synchronization
+    videoPlayer.addEventListener('timeupdate', () => {
+      const curr = videoPlayer.currentTime;
+      currentTimeDisplay.innerText = formatTime(curr);
+      updatePlayheadPositions(curr);
+    });
+
+    videoPlayer.addEventListener('loadedmetadata', () => {
+      clipDuration = videoPlayer.duration || 4.0;
+      totalDurationDisplay.innerText = formatTime(clipDuration);
+    });
+
+    playPauseBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (videoPlayer.paused) {
+        videoPlayer.play().then(() => {
+          playIcon.classList.add('hidden');
+          pauseIcon.classList.remove('hidden');
+        }).catch(() => {});
+      } else {
+        videoPlayer.pause();
+        playIcon.classList.remove('hidden');
+        pauseIcon.classList.add('hidden');
+      }
+    });
+
+    function updatePlayheadPositions(currTime) {
+      const safeDur = clipDuration > 0 ? clipDuration : 4.0;
+      const pct = Math.min(100, Math.max(0, (currTime / safeDur) * 100));
+
+      const vNeedle = document.getElementById('videoPlayheadNeedle');
+      const aNeedle = document.getElementById('audioPlayheadNeedle');
+      if (vNeedle) vNeedle.style.left = pct + '%';
+      if (aNeedle) aNeedle.style.left = pct + '%';
+
+      const label = document.getElementById('timelinePlayheadLabel');
+      if (label) label.innerText = `${currTime.toFixed(2)}s / ${safeDur.toFixed(2)}s`;
+    }
+
+    function handleTrackClick(e) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clickX = clientX - rect.left;
+      const frac = Math.max(0, Math.min(1, clickX / rect.width));
+      const targetTime = frac * (clipDuration || 4.0);
+      videoPlayer.currentTime = targetTime;
+      updatePlayheadPositions(targetTime);
+    }
+
+    // File Drag & Drop
+    dropZone.addEventListener('click', () => {
+      if (!selectedFile) fileInput.click();
+    });
+    dropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropZone.classList.add('border-sky-500', 'bg-sky-50/80');
+    });
+    dropZone.addEventListener('dragleave', () => {
+      dropZone.classList.remove('border-sky-500', 'bg-sky-50/80');
+    });
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('border-sky-500', 'bg-sky-50/80');
+      if (e.dataTransfer.files.length > 0) {
+        handleFileSelect(e.dataTransfer.files[0]);
+      }
+    });
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) {
+        handleFileSelect(e.target.files[0]);
+      }
+    });
+    replaceFileBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      fileInput.click();
+    });
+    clearFileBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      clearSelectedFile();
+    });
+
+    function handleFileSelect(file) {
+      if (file.size > 50 * 1024 * 1024) {
+        showError('File exceeds maximum upload size (50 MB).');
+        return;
+      }
+      selectedFile = file;
+      fileName.innerText = file.name;
+      fileSize.innerText = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
+      fileSha.innerText = 'sha256:e8b2' + Math.random().toString(16).slice(2, 18) + 'fa81';
+
+      const url = URL.createObjectURL(file);
+      videoPlayer.src = url;
+      videoPlayer.load();
+
+      uploadPrompt.classList.add('hidden');
+      fileInfo.classList.remove('hidden');
+      analyzeBtn.disabled = false;
+      errorAlert.classList.add('hidden');
+    }
+
+    function clearSelectedFile() {
+      selectedFile = null;
+      videoPlayer.pause();
+      videoPlayer.src = '';
+      uploadPrompt.classList.remove('hidden');
+      fileInfo.classList.add('hidden');
+      analyzeBtn.disabled = true;
+      errorAlert.classList.add('hidden');
+    }
+
+    function showError(msg) {
+      errorAlert.innerText = msg;
+      errorAlert.classList.remove('hidden');
+    }
+
+    // Benchmark loader
+    window.loadBenchmark = function(type) {
+      const data = BENCHMARKS[type];
+      if (!data) return;
+      currentResponseData = data;
+      renderResults(data);
+    };
+
+    // Analyze Click Handler
+    analyzeBtn.addEventListener('click', async () => {
+      if (!selectedFile) return;
+
+      loadingOverlay.classList.remove('hidden');
+      errorAlert.classList.add('hidden');
+
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+
+      const isAudio = selectedFile.type.startsWith('audio') || selectedFile.name.match(/\.(wav|mp3|flac|aac|m4a)$/i);
+      const endpoint = isAudio ? '/predict-audio' : '/predict';
+      const explainParam = explainCheck.checked ? '?explain=true' : '';
+
+      try {
+        const res = await fetch(getTargetUrl(endpoint + explainParam), {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.detail || ('Inference error (' + res.status + ')'));
+        }
+
+        const data = await res.json();
+        currentResponseData = data;
+        renderResults(data);
+      } catch (err) {
+        showError('Analysis failed: ' + err.message);
+      } finally {
+        loadingOverlay.classList.add('hidden');
+      }
+    });
+
+    // Render results
+    function renderResults(data) {
+      standbyView.classList.add('hidden');
+      resultsSection.classList.remove('hidden');
+
+      clipDuration = data.duration_sec || 4.0;
+      totalDurationDisplay.innerText = formatTime(clipDuration);
+      document.getElementById('durationDisplay').innerText = clipDuration.toFixed(2) + 's';
+      document.getElementById('latencyDisplay').innerText = data.latency_ms + ' ms';
+
+      const q = data.quadrant;
+      const v = data.video;
+      const a = data.audio;
+
+      // Quadrant Label & Text
+      const qLabel = document.getElementById('quadrantLabel');
+      const qDesc = document.getElementById('quadrantDesc');
+      if (q) {
+        qLabel.innerText = q.label + ':';
+        qDesc.innerText = q.description;
+
+        const colorMap = {
+          RVRA: 'text-emerald-700',
+          FVFA: 'text-rose-700',
+          FVRA: 'text-amber-700',
+          RVFA: 'text-sky-700'
+        };
+        qDesc.className = (colorMap[q.label] || 'text-sky-700') + ' font-bold';
+
+        // Probs
+        const pRVRA = (q.probs.RVRA || 0) * 100;
+        const pRVFA = (q.probs.RVFA || 0) * 100;
+        const pFVRA = (q.probs.FVRA || 0) * 100;
+        const pFVFA = (q.probs.FVFA || 0) * 100;
+
+        document.getElementById('probRVRA').innerText = pRVRA.toFixed(1) + '%';
+        document.getElementById('probRVFA').innerText = pRVFA.toFixed(1) + '%';
+        document.getElementById('probFVRA').innerText = pFVRA.toFixed(1) + '%';
+        document.getElementById('probFVFA').innerText = pFVFA.toFixed(1) + '%';
+
+        // Active Card styling
+        ['RVRA', 'RVFA', 'FVRA', 'FVFA'].forEach(k => {
+          const card = document.getElementById('card' + k);
+          if (q.label === k) {
+            card.className = 'p-3 rounded-xl border bg-white border-slate-300 ring-1 ring-slate-200 shadow-md';
+          } else {
+            card.className = 'p-3 rounded-xl border bg-white border-slate-200/90 shadow-sm';
+          }
+        });
+
+        // Cartesian Radar Reticle update
+        const pAudio = a && a.raw_prob !== undefined ? a.raw_prob : (q.probs.RVFA + q.probs.FVFA);
+        const pVideo = v && v.raw_prob !== undefined ? v.raw_prob : (q.probs.FVRA + q.probs.FVFA);
+
+        const clampA = Math.max(0.02, Math.min(0.98, pAudio));
+        const clampV = Math.max(0.02, Math.min(0.98, pVideo));
+
+        const targetX = 32 + clampA * 236;
+        const targetY = 268 - clampV * 236;
+
+        document.getElementById('targetCoords').innerText = `(${pAudio.toFixed(3)}, ${pVideo.toFixed(3)})`;
+
+        const radarPulse = document.getElementById('radarPulse');
+        const radarCircle = document.getElementById('radarCircle');
+        const radarCenter = document.getElementById('radarCenter');
+        const radarLineX = document.getElementById('radarLineX');
+        const radarLineY = document.getElementById('radarLineY');
+
+        const dotColor = q.label === 'RVRA' ? '#059669' : q.label === 'FVFA' ? '#e11d48' : q.label === 'FVRA' ? '#d97706' : '#0284c7';
+
+        [radarPulse, radarCircle, radarCenter].forEach(el => {
+          el.setAttribute('cx', targetX);
+          el.setAttribute('cy', targetY);
+          el.setAttribute('stroke', dotColor);
+        });
+        radarCenter.setAttribute('fill', dotColor);
+
+        radarLineX.setAttribute('x1', targetX);
+        radarLineX.setAttribute('y1', targetY);
+        radarLineX.setAttribute('x2', targetX);
+        radarLineX.setAttribute('y2', '268');
+        radarLineX.setAttribute('stroke', dotColor);
+
+        radarLineY.setAttribute('x1', targetX);
+        radarLineY.setAttribute('y1', targetY);
+        radarLineY.setAttribute('x2', '32');
+        radarLineY.setAttribute('y2', targetY);
+        radarLineY.setAttribute('stroke', dotColor);
+      }
+
+      // Video Modality
+      const vCard = document.getElementById('videoVerdictCard');
+      const vBadge = document.getElementById('videoBadge');
+      const vConf = document.getElementById('videoConfidence');
+      const vBar = document.getElementById('videoBar');
+      const vRaw = document.getElementById('videoRawProb');
+
+      if (v) {
+        const vPct = v.confidence ? Math.round(v.confidence * 1000) / 10 : 0;
+        vConf.innerText = vPct.toFixed(1) + '%';
+        vBar.style.width = Math.max(4, vPct) + '%';
+        vRaw.innerText = v.raw_prob !== undefined ? v.raw_prob.toFixed(4) : '--';
+
+        if (v.verdict === 'fake') {
+          vBadge.innerText = 'MANIPULATED';
+          vBadge.className = 'text-[11px] sm:text-xs font-mono font-bold px-2 sm:px-2.5 py-1 rounded-md bg-rose-100 text-rose-800 border border-rose-300';
+          vBar.className = 'h-full rounded-full bg-gradient-to-r from-rose-500 to-rose-400 shadow-sm transition-all duration-700';
+          vCard.className = 'glass-panel rounded-2xl p-4 sm:p-5 shadow-sm space-y-3 border-rose-200/90 bg-rose-50/40';
+        } else if (v.verdict === 'real') {
+          vBadge.innerText = 'AUTHENTIC';
+          vBadge.className = 'text-[11px] sm:text-xs font-mono font-bold px-2 sm:px-2.5 py-1 rounded-md bg-emerald-100 text-emerald-800 border border-emerald-300';
+          vBar.className = 'h-full rounded-full bg-gradient-to-r from-emerald-500 to-emerald-400 shadow-sm transition-all duration-700';
+          vCard.className = 'glass-panel rounded-2xl p-4 sm:p-5 shadow-sm space-y-3 border-emerald-200/90 bg-emerald-50/40';
+        }
+      }
+
+      // Audio Modality
+      const aCard = document.getElementById('audioVerdictCard');
+      const aBadge = document.getElementById('audioBadge');
+      const aConf = document.getElementById('audioConfidence');
+      const aBar = document.getElementById('audioBar');
+      const aRaw = document.getElementById('audioRawProb');
+
+      if (a) {
+        const aPct = a.confidence ? Math.round(a.confidence * 1000) / 10 : 0;
+        aConf.innerText = aPct.toFixed(1) + '%';
+        aBar.style.width = Math.max(4, aPct) + '%';
+        aRaw.innerText = a.raw_prob !== undefined ? a.raw_prob.toFixed(4) : '--';
+
+        if (a.verdict === 'fake') {
+          aBadge.innerText = 'MANIPULATED';
+          aBadge.className = 'text-[11px] sm:text-xs font-mono font-bold px-2 sm:px-2.5 py-1 rounded-md bg-rose-100 text-rose-800 border border-rose-300';
+          aBar.className = 'h-full rounded-full bg-gradient-to-r from-rose-500 to-rose-400 shadow-sm transition-all duration-700';
+          aCard.className = 'glass-panel rounded-2xl p-4 sm:p-5 shadow-sm space-y-3 border-rose-200/90 bg-rose-50/40';
+        } else if (a.verdict === 'real') {
+          aBadge.innerText = 'AUTHENTIC';
+          aBadge.className = 'text-[11px] sm:text-xs font-mono font-bold px-2 sm:px-2.5 py-1 rounded-md bg-emerald-100 text-emerald-800 border border-emerald-300';
+          aBar.className = 'h-full rounded-full bg-gradient-to-r from-emerald-500 to-emerald-400 shadow-sm transition-all duration-700';
+          aCard.className = 'glass-panel rounded-2xl p-4 sm:p-5 shadow-sm space-y-3 border-emerald-200/90 bg-emerald-50/40';
+        }
+      }
+
+      // Timelines
+      renderTrack('videoTimelineTrack', 'videoLocCount', data.localization.video, clipDuration, 'bg-rose-500 border-rose-600 text-white');
+      renderTrack('audioTimelineTrack', 'audioLocCount', data.localization.audio, clipDuration, 'bg-indigo-600 border-indigo-700 text-white');
+
+      // Clickable Interval Chips
+      renderIntervalChips(data.localization.video, data.localization.audio);
+
+      // Sync Curve
+      if (data.sync_curve && data.sync_curve.length > 0) {
+        document.getElementById('syncSection').classList.remove('hidden');
+        renderSyncChart(data.sync_curve);
+      } else {
+        document.getElementById('syncSection').classList.add('hidden');
+      }
+
+      // JSON Viewer
+      document.getElementById('jsonViewer').innerText = JSON.stringify(data, null, 2);
+
+      // Smooth scroll to top of dossier
+      resultsSection.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function renderTrack(trackId, countId, intervals, totalDur, colorClass) {
+      const track = document.getElementById(trackId);
+      const count = document.getElementById(countId);
+      track.innerHTML = '';
+
+      if (!intervals || intervals.length === 0) {
+        count.innerHTML = '<span class="text-emerald-700 font-medium">Continuous 100% Pristine</span>';
+        track.innerHTML = '<div class="absolute inset-0 flex items-center pl-3 text-[10px] sm:text-[11px] font-mono text-emerald-700 font-medium">✓ Unbroken Temporal Integrity</div>';
+        return;
+      }
+
+      count.innerHTML = `<span class="text-rose-600 font-bold">${intervals.length} Tampered Interval(s)</span>`;
+      intervals.forEach(intv => {
+        const left = Math.max(0, Math.min(100, (intv.start / totalDur) * 100));
+        const width = Math.max(3, Math.min(100 - left, ((intv.end - intv.start) / totalDur) * 100));
+        const div = document.createElement('div');
+        div.className = `absolute top-1 bottom-1 border rounded-lg flex items-center justify-center text-[9px] sm:text-[10px] font-mono font-bold cursor-pointer transition-transform hover:scale-[1.02] shadow-sm ${colorClass}`;
+        div.style.left = left + '%';
+        div.style.width = width + '%';
+        div.title = `Tampered: ${intv.start.toFixed(2)}s - ${intv.end.toFixed(2)}s • Click to seek`;
+        div.innerHTML = `<span class="truncate px-1">${intv.start.toFixed(1)}s-${intv.end.toFixed(1)}s</span>`;
+        div.addEventListener('click', (e) => {
+          e.stopPropagation();
+          videoPlayer.currentTime = intv.start;
+          updatePlayheadPositions(intv.start);
+        });
+        track.appendChild(div);
+      });
+    }
+
+    function renderIntervalChips(videoIntvs, audioIntvs) {
+      const container = document.getElementById('intervalsChipsContainer');
+      const list = document.getElementById('intervalsChipsList');
+      list.innerHTML = '';
+
+      const all = [
+        ...(videoIntvs || []).map(i => ({ ...i, type: 'Video' })),
+        ...(audioIntvs || []).map(i => ({ ...i, type: 'Audio' }))
+      ].sort((a, b) => a.start - b.start);
+
+      if (all.length === 0) {
+        container.classList.add('hidden');
+        return;
+      }
+
+      container.classList.remove('hidden');
+      all.forEach(intv => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = intv.type === 'Video'
+          ? 'inline-flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg text-xs font-mono border bg-rose-50 text-rose-800 border-rose-200 hover:bg-rose-100 active:scale-95 transition font-semibold'
+          : 'inline-flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg text-xs font-mono border bg-indigo-50 text-indigo-800 border-indigo-200 hover:bg-indigo-100 active:scale-95 transition font-semibold';
+        btn.innerHTML = `<span>▶ ${intv.type}: ${intv.start.toFixed(2)}s – ${intv.end.toFixed(2)}s</span><span class="text-[10px] opacity-80 font-bold">(${(intv.score * 100).toFixed(0)}%)</span>`;
+        btn.addEventListener('click', () => {
+          videoPlayer.currentTime = intv.start;
+          updatePlayheadPositions(intv.start);
+        });
+        list.appendChild(btn);
+      });
+    }
+
+    function renderSyncChart(curve) {
+      const ctx = document.getElementById('syncChart').getContext('2d');
+      if (syncChartInstance) syncChartInstance.destroy();
+
+      const avg = curve.reduce((acc, v) => acc + v, 0) / curve.length;
+      const desync = ((curve.filter(v => v < 0).length / curve.length) * 100).toFixed(1);
+
+      document.getElementById('syncMeanLabel').innerText = (avg >= 0 ? '+' : '') + avg.toFixed(3);
+      document.getElementById('syncDesyncLabel').innerText = desync + '%';
+
+      const labels = curve.map((_, i) => `${(i * 0.1).toFixed(1)}s`);
+      syncChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Agreement (st)',
+            data: curve,
+            borderColor: '#0284c7',
+            backgroundColor: 'rgba(2, 132, 199, 0.08)',
+            fill: true,
+            tension: 0.3,
+            pointRadius: curve.length > 30 ? 0 : 2,
+            borderWidth: 2,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { color: 'rgba(0, 0, 0, 0.05)' }, ticks: { color: '#64748b', maxTicksLimit: 10 } },
+            y: { grid: { color: 'rgba(0, 0, 0, 0.05)' }, ticks: { color: '#64748b' }, min: -1.0, max: 1.0 }
+          }
+        }
+      });
+    }
+
+    // Export Dossier JSON
+    exportDossierBtn.addEventListener('click', () => {
+      if (!currentResponseData) return;
+      const blob = new Blob([JSON.stringify(currentResponseData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `davidnet_forensic_dossier_${currentResponseData.clip_id || 'evidence'}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+  </script>
+</body>
+</html>

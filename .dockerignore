@@ -1,0 +1,20 @@
+.git
+.github
+.pytest_cache
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+*.safetensors
+*.pt
+*.pth
+checkpoints/*.safetensors
+kaggle/
+kaggle_kernel/
+dataset_recon/
+report/
+reports/
+Thesis Report Template/
+ui/node_modules/
+ui/.next/
+tests/
