@@ -70,6 +70,7 @@ htmlcov/
 
 # Publication safety: strictly exclude all document and manuscript files
 *.md
+!README.md
 *.markdown
 *.pdf
 *.tex
