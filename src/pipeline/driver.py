@@ -59,7 +59,7 @@ class _LazyTableDict(dict):
 
 class Session:
     # ================================================================ setup
-    def __init__(self, user_config: dict, repo_dir: str | Path = "."):
+    def __init__(self, user_config: dict, repo_dir: str | Path = ".", namespace: Optional[str] = None):
         import os
         quiet_third_party()
         cfg = C.build_config(user_config)
@@ -73,7 +73,7 @@ class Session:
             cfg = recovery_config(cfg)
         self.cfg = cfg
         self.mode = cfg["mode"]
-        self.ns = "" if self.mode == "full" else f"{self.mode}/"
+        self.ns = namespace if namespace is not None else ("" if self.mode == "full" else f"{self.mode}/")
         if self.mode == "recovery_test":
             # each recovery test is isolated under its own tag (a reference run and a
             # crash/resume run can then be compared side by side)
@@ -84,7 +84,7 @@ class Session:
         self.work.mkdir(parents=True, exist_ok=True)
         self.scratch.mkdir(parents=True, exist_ok=True)
         self.log_path = setup_logging(self.work / "logs")
-        self.env = environment_report(self.repo_dir)
+        self.env = environment_report(self.repo_dir, worker_name=cfg.get("session", {}).get("worker_name"))
         self.hw = autoconfig_hardware(cfg)
         self.stopwatch = Stopwatch(cfg["session"]["time_budget_hours"],
                                    cfg["session"]["safety_minutes"])
@@ -136,16 +136,23 @@ class Session:
         idx_path = f"{self.ns}data/SPLITS_SHA256.json"
         local = self.work / "data"
         idx = self.store.read_json(idx_path)
+        data_ns = self.ns
         if idx is None and self.mode == "recovery_test":
             idx = self._build_synthetic_data(local, M)
-        elif idx is None:
+        elif idx is None and self.ns:
+            # Fall back to root frozen split if sub-namespace does not have its own
+            idx = self.store.read_json("data/SPLITS_SHA256.json")
+            if idx is not None:
+                data_ns = ""
+                log_event("data_fallback", f"reusing root frozen split data/SPLITS_SHA256.json for namespace '{self.ns}'")
+        if idx is None:
             log_event("data_build", "no frozen split on the Hub -> building from Kaggle mounts")
             idx = self._build_data(local, M, S)
         for rel, meta in idx["files"].items():
             dst = local / rel
             if not dst.exists() or sha256_file(dst) != meta["sha256"]:
-                self.store.download(f"{self.ns}data/{rel}", self.work)
-                src = self.work / self.ns / "data" / rel if self.ns else dst
+                self.store.download(f"{data_ns}data/{rel}", self.work)
+                src = self.work / data_ns / "data" / rel if data_ns else dst
                 if src != dst:
                     dst.parent.mkdir(parents=True, exist_ok=True)
                     shutil.move(str(src), dst)
@@ -257,6 +264,10 @@ class Session:
         from src.pipeline.prepare import feature_set_id
         path = f"{self.ns}data/feature_set.json"
         fs = self.store.read_json(path)
+        if fs is None and self.ns:
+            fs = self.store.read_json("data/feature_set.json")
+            if fs is not None:
+                log_event("features_fallback", f"reusing root data/feature_set.json for namespace '{self.ns}'")
         if fs is None:
             f = self.cfg["features"]
             revs = {"video": resolve_revision(f["video_model"]),
@@ -457,7 +468,11 @@ class Session:
         if not spec.init_from:
             return None
         dep = self.registry.find(Registry.key(self.mode, spec.init_from, seed))
-        dep_dir = self.registry.exp_dir(dep)
+        if not dep and getattr(self, "ns", None):
+            dep = Registry(self.store, "").find(Registry.key(self.mode, spec.init_from, seed))
+        if not dep:
+            raise RuntimeError(f"{spec.name}: init_from {spec.init_from} not found in registry")
+        dep_dir = self.registry.exp_dir(dep) if self.registry.find(Registry.key(self.mode, spec.init_from, seed)) else Registry(self.store, "").exp_dir(dep)
         cm = CheckpointManager(self.store, dep_dir, self.work / "experiments" / Path(dep_dir).name)
         got = cm.load_best()
         if got is None:

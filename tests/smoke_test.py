@@ -424,15 +424,8 @@ def test_kaggle_creds():
     kaggle_json.write_text(json.dumps({"username": username, "key": key}))
 
     # Verify all 7 active datasets used in training/evaluation
-    active_datasets = [
-        "aicontentdetections/fakeavceleb-v1-2",
-        "pranay22077/dfdc-10",
-        "fahimaislam1812/deepfaketimit",
-        "reubensuju/celeb-df-v2",
-        "anishsarkar22/asvpoof-2019-dataset-la",
-        "abdallamohamed312/in-the-wild-audio-deepfake",
-        "walimuhammadahmad/fakeaudio",
-    ]
+    from src.pipeline.dataset_config import KAGGLE_SLUGS
+    active_datasets = list(KAGGLE_SLUGS.values())
 
     verified = []
     for slug in active_datasets:

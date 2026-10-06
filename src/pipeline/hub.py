@@ -13,7 +13,8 @@ Guarantees
   update. Several Kaggle accounts can therefore share one repo.
 * **Commit budget.** HF allows roughly 128 commits/hour/repo; a trailing-hour counter
   throttles before the server does.
-* The token is resolved from Kaggle Secrets or the environment and is never printed.
+* The token is resolved from Kaggle Secrets, the environment or an attached input
+  file, and is never printed.
 """
 from __future__ import annotations
 
@@ -35,7 +36,8 @@ _TOKEN_HELP = (
     "  On Kaggle: Add-ons -> Secrets -> add a secret named HF_TOKEN (a WRITE token from\n"
     "  https://huggingface.co/settings/tokens), tick 'Attached' for this notebook, then\n"
     "  re-run. Note: pushing a notebook with `kaggle kernels push` detaches secrets --\n"
-    "  re-attach it in the notebook editor afterwards.\n"
+    "  re-attach it in the notebook editor afterwards, or attach the scheduler's private\n"
+    "  input dataset (contains hf_token.txt), which `kaggle kernels push` does keep attached.\n"
     "  Elsewhere: export HF_TOKEN=... in the environment.")
 
 
@@ -43,8 +45,35 @@ class HubError(RuntimeError):
     pass
 
 
+def _token_from_file() -> Optional[str]:
+    """Last resort before the local hf cache: a token shipped as an input file.
+
+    `kaggle kernels push` detaches notebook Secrets, so the scheduler (src/scheduler)
+    ships each worker's HF token in a private per-worker input dataset as
+    `hf_token.txt`. Input datasets stay attached across pushes.
+    """
+    candidates: list[Path] = []
+    env_path = os.environ.get("DAVIDNET_HF_TOKEN_FILE")
+    if env_path:
+        candidates.append(Path(env_path))
+    for base in (Path("/kaggle/input"), Path("/content/input")):
+        if base.is_dir():
+            candidates += sorted(base.rglob("hf_token.txt"))
+            candidates += sorted(base.rglob("*token*.txt"))
+            candidates += sorted(base.glob("*/hf_token.txt"))
+            candidates += sorted(base.glob("*/*/hf_token.txt"))
+    for p in candidates:
+        try:
+            text = p.read_text(encoding="utf-8").strip()
+        except OSError:
+            continue
+        if text and not text.startswith("#"):
+            return text
+    return None
+
+
 def resolve_hf_token() -> str:
-    """Kaggle Secret HF_TOKEN -> env HF_TOKEN -> cached `hf auth login` token."""
+    """Kaggle Secret HF_TOKEN -> env HF_TOKEN -> input-file token -> cached `hf auth login` token."""
     token = None
     try:
         from kaggle_secrets import UserSecretsClient  # only exists on Kaggle
@@ -58,6 +87,7 @@ def resolve_hf_token() -> str:
         except Exception:  # noqa: BLE001
             token = None
     token = token or os.environ.get("HF_TOKEN") or os.environ.get("HUGGING_FACE_HUB_TOKEN")
+    token = token or _token_from_file()
     if not token:
         try:
             from huggingface_hub import get_token
@@ -195,8 +225,9 @@ class HubStore:
 
     @staticmethod
     def _backoff(attempt: int, what: str, err: Exception, status=None, retry_after=None):
-        if status == 429:        # rate limit (commit budget is per hour): wait much longer
-            delay = retry_after if retry_after else min(900.0, 60.0 * (attempt + 1))
+        if status == 429:        # rate limit: wait with jitter to avoid stampede
+            base = retry_after if retry_after else min(300.0, 30.0 * (attempt + 1))
+            delay = base * (0.75 + 0.5 * random.random())
         else:
             delay = min(120.0, 2.0 * (2 ** attempt)) * (0.75 + 0.5 * random.random())
         log_event("hub_retry", f"{what}: {type(err).__name__} (HTTP {status}); retry in {delay:.0f}s",

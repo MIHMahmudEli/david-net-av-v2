@@ -10,10 +10,8 @@ __pycache__
 *.pth
 checkpoints/*.safetensors
 kaggle/
-kaggle_kernel/
 dataset_recon/
 report/
-reports/
 Thesis Report Template/
 ui/node_modules/
 ui/.next/

@@ -32,7 +32,7 @@ n_frames: 16
 audio_len: 64000
 shard_root: null
 feature_cache: null
-root_dir: /kaggle/input/datasets/aicontentdetections/fakeavceleb-v1-2/FakeAVCeleb_v1.2
+root_dir: /kaggle/input/datasets/fakeavceleb/FakeAVCeleb_v1.2
 train_manifest: /kaggle/working/splits/fakeavceleb/train.jsonl
 val_manifest: /kaggle/working/splits/fakeavceleb/val.jsonl
 modality_dropout: 0.15

@@ -1,0 +1,20 @@
+{
+  "code_repo": "https://github.com/MIHMahmudEli/david-net-av-v2.git",
+  "groups": {
+    "default": "6793d730aa734433bc3c7bc9ff4f89e0b5dc40d1",
+    "baseline": "6793d730aa734433bc3c7bc9ff4f89e0b5dc40d1",
+    "qacp": "6793d730aa734433bc3c7bc9ff4f89e0b5dc40d1",
+    "proposed": "6793d730aa734433bc3c7bc9ff4f89e0b5dc40d1",
+    "ablation": "6793d730aa734433bc3c7bc9ff4f89e0b5dc40d1",
+    "logo": "6793d730aa734433bc3c7bc9ff4f89e0b5dc40d1",
+    "legacy": "6793d730aa734433bc3c7bc9ff4f89e0b5dc40d1",
+    "phase_b": "6793d730aa734433bc3c7bc9ff4f89e0b5dc40d1",
+    "external": "6793d730aa734433bc3c7bc9ff4f89e0b5dc40d1"
+  },
+  "tags": {
+    "phase2-v1": "6793d730aa734433bc3c7bc9ff4f89e0b5dc40d1"
+  },
+  "code_revision": "6793d730aa734433bc3c7bc9ff4f89e0b5dc40d1",
+  "pinned_at": "2026-10-04T17:35:00Z",
+  "verified_clean": true
+}

@@ -30,8 +30,8 @@ audio_len: 64000
 shard_root: null
 feature_cache: null
 # rel_paths in the manifest are relative to root_dir (the dir build_manifest.py was
-# pointed at, e.g. /kaggle/input/datasets/aicontentdetections/fakeavceleb-v1-2/FakeAVCeleb_v1.2)
-root_dir: /kaggle/input/datasets/aicontentdetections/fakeavceleb-v1-2/FakeAVCeleb_v1.2
+# pointed at, e.g. /kaggle/input/datasets/fakeavceleb/FakeAVCeleb_v1.2)
+root_dir: /kaggle/input/datasets/fakeavceleb/FakeAVCeleb_v1.2
 train_manifest: /kaggle/working/splits/fakeavceleb/train.jsonl   # SUBJECT-DISJOINT train split
 val_manifest: /kaggle/working/splits/fakeavceleb/val.jsonl
 

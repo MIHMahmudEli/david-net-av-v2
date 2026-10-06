@@ -57,7 +57,7 @@ def _atomic_write_json(obj, path: Path):
 
 class CheckpointManager:
     def __init__(self, store, exp_dir: str, local_root: str | Path, keep_last: int = 2,
-                 background: bool = True, config_hash: str = ""):
+                 background: bool = True, config_hash: str = "", upload_steps: bool = False):
         self.store = store                      # HubStore, or None for local-only tests
         self.exp_dir = exp_dir.rstrip("/")
         self.local_root = Path(local_root)
@@ -67,6 +67,7 @@ class CheckpointManager:
         self.keep_last = max(1, keep_last)
         self.background = background
         self.config_hash = config_hash
+        self.upload_steps = upload_steps
         self._thread: Optional[threading.Thread] = None
         self._last_error: Optional[str] = None
         self._uploaded_steps: list[int] = []
@@ -77,7 +78,7 @@ class CheckpointManager:
     # ================================================================== save
     def save(self, state: dict, step: int, epoch: int, reason: str,
              extra_files: Optional[dict] = None) -> Path:
-        """Write the checkpoint locally (atomic), then upload it (background)."""
+        """Write the checkpoint locally (atomic), then upload it if upload_steps is True."""
         self.wait()                                     # one upload in flight at a time
         d = self.local_ckpt / _step_dir(step)
         d.mkdir(parents=True, exist_ok=True)
@@ -99,7 +100,7 @@ class CheckpointManager:
                     self._extra_files[rp] = Path(lp).read_bytes()
                 except Exception:
                     self._extra_files[rp] = Path(lp)
-        if self.store is None:
+        if self.store is None or not self.upload_steps:
             self._prune_local()
             return d
         if self.background:

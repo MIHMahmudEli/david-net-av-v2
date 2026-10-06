@@ -36,15 +36,7 @@ from typing import Optional
 
 from src.pipeline.env import log_event
 
-KAGGLE_SLUGS = {
-    "fakeavceleb": "aicontentdetections/fakeavceleb-v1-2",
-    "celeb-df-v2": "reubensuju/celeb-df-v2",
-    "dfdc-10": "pranay22077/dfdc-10",
-    "deepfaketimit": "fahimaislam1812/deepfaketimit",
-    "asvspoof2019-la": "anishsarkar22/asvpoof-2019-dataset-la",
-    "in-the-wild": "abdallamohamed312/in-the-wild-audio-deepfake",
-    "wavefake": "walimuhammadahmad/fakeaudio",
-}
+from src.pipeline.dataset_config import KAGGLE_SLUGS
 
 # a directory that proves we found the right root for each corpus
 _ROOT_MARKERS = {

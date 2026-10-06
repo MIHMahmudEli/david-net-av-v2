@@ -194,15 +194,24 @@ def gpu_info() -> list[dict]:
     return out
 
 
-def environment_report(repo_dir: str | Path | None = None) -> dict:
+def environment_report(repo_dir: str | Path | None = None, worker_name: str | None = None) -> dict:
     """The environment block every experiment stores in configs/environment.json."""
+    py_ver = sys.version.split()[0]
+    torch_ver = torch.__version__
+    w_name = worker_name or os.environ.get("WORKER_NAME") or "local"
+    git_info = git_revision(repo_dir) if repo_dir is not None else git_revision(Path("."))
+    git_commit = git_info.get("commit")
+
     rep = {
         "timestamp_utc": utcnow(),
-        "python": sys.version.split()[0],
+        "python": py_ver,
+        "python_version": py_ver,
         "platform": platform.platform(),
         "hostname": platform.node(),
         "cpu_count": os.cpu_count(),
-        "torch": torch.__version__,
+        "torch": torch_ver,
+        "torch_version": torch_ver,
+        "worker_name": w_name,
         "cuda_available": torch.cuda.is_available(),
         "cuda_version": torch.version.cuda,
         "cudnn_version": torch.backends.cudnn.version() if torch.backends.cudnn.is_available() else None,
@@ -214,15 +223,9 @@ def environment_report(repo_dir: str | Path | None = None) -> dict:
                                                    "KAGGLE_DOCKER_IMAGE", "KAGGLE_CONTAINER_NAME")
                    if os.environ.get(k)},
         "ffmpeg": (_cmd(["ffmpeg", "-version"]) or "").splitlines()[0:1],
+        "git": git_info,
+        "git_commit": git_commit,
     }
-    try:
-        import psutil
-        vm = psutil.virtual_memory()
-        rep["host_ram_gb"] = round(vm.total / 1e9, 1)
-    except Exception:  # noqa: BLE001
-        pass
-    if repo_dir is not None:
-        rep["git"] = git_revision(repo_dir)
     return rep
 
 

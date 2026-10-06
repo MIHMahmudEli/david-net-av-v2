@@ -67,3 +67,20 @@ desktop.ini
 .coverage
 htmlcov/
 .ipynb_checkpoints/
+
+# Publication safety: strictly exclude all document and manuscript files
+*.md
+*.markdown
+*.pdf
+*.tex
+*.doc
+*.docx
+*.odt
+*.rtf
+report/
+docs/
+Thesis Report Template/
+checkpoints/
+scheduler/
+.kaggle_orchestrator/
+hf_artifacts_staging/

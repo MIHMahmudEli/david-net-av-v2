@@ -15,8 +15,8 @@ from pathlib import Path
 import pytest
 
 REPO = Path(__file__).resolve().parents[1]
-TRAIN_NB = REPO / "kaggle_kernel" / "train_kaggle.ipynb"
-BUILD_NB = REPO / "kaggle_kernel" / "build_cache.ipynb"
+TRAIN_NB = REPO / "kaggle" / "train_kaggle.ipynb"
+BUILD_NB = REPO / "kaggle" / "build_cache.ipynb"
 
 
 @pytest.fixture(autouse=True)
@@ -103,7 +103,7 @@ def test_build_notebook_declares_a_fakeavceleb_only_allowlist():
 
 def test_build_notebook_downloads_nothing_when_fakeavceleb_is_mounted(tmp_path, monkeypatch):
     datasets, slugs = _run_cell4(BUILD_NB, tmp_path, monkeypatch,
-                                 mounted=["aicontentdetections/fakeavceleb-v1-2"])
+                                 mounted=["fakeavceleb-v1-2"])
     assert set(datasets) == {"fakeavceleb"}
     assert slugs == [], f"the cache builder tried to download {slugs}"
 
@@ -111,7 +111,7 @@ def test_build_notebook_downloads_nothing_when_fakeavceleb_is_mounted(tmp_path, 
 def test_build_notebook_never_reaches_for_the_96gb_corpus(tmp_path, monkeypatch):
     """dfdc-10 is the one that filled the disk. It must not even be attempted."""
     _, slugs = _run_cell4(BUILD_NB, tmp_path, monkeypatch,
-                          mounted=["aicontentdetections/fakeavceleb-v1-2"])
+                          mounted=["fakeavceleb-v1-2"])
     assert not any("dfdc" in s for s in slugs)
 
 
@@ -120,7 +120,7 @@ def test_training_notebook_still_downloads_everything_by_default(tmp_path, monke
     """The allowlist defaults to the full set, so training behaviour is unchanged."""
     assert _allowlist_preset(TRAIN_NB) is None
     datasets, slugs = _run_cell4(TRAIN_NB, tmp_path, monkeypatch,
-                                 mounted=["aicontentdetections/fakeavceleb-v1-2"])
+                                 mounted=["fakeavceleb-v1-2"])
     assert set(datasets) == {"fakeavceleb"}
     assert len(slugs) == 6, f"expected the other six to be attempted, got {slugs}"
     assert any("dfdc" in s for s in slugs)
@@ -128,7 +128,7 @@ def test_training_notebook_still_downloads_everything_by_default(tmp_path, monke
 
 def test_mounted_datasets_are_used_and_never_downloaded(tmp_path, monkeypatch):
     datasets, slugs = _run_cell4(TRAIN_NB, tmp_path, monkeypatch, mounted=[
-        "aicontentdetections/fakeavceleb-v1-2", "pranay22077/dfdc-10",
+        "fakeavceleb-v1-2", "pranay22077/dfdc-10",
         "reubensuju/celeb-df-v2"])
     assert {"fakeavceleb", "dfdc-10", "celeb-df-v2"} <= set(datasets)
     assert not any("dfdc" in s or "celeb-df" in s for s in slugs)

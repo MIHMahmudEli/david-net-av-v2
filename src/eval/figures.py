@@ -273,21 +273,23 @@ def _demo_reports(seed: int = 7):
 
 
 # ---------------------------------------------------------------- CLI
-def generate_all(results_dir: str | None, out: str, demo: bool):
+def generate_all(results_dir: str | None, out: str):
     out_dir = Path(out)
-    if demo:
-        print("generating DEMO figures (synthetic data — replace with real runs)")
-        main, reports, rob, ablation = _demo_reports()
-    else:
-        rdir = Path(results_dir)
-        reports = [json.loads(p.read_text(encoding="utf-8"))
-                   for p in sorted(rdir.glob("*.json"))
-                   if "robustness" not in p.name and "ablation" not in p.name]
-        main = next((r for r in reports if r.get("method", "").startswith("david")), None)
-        rob_p = next(iter(sorted(rdir.glob("robustness*.json"))), None)
-        rob = json.loads(rob_p.read_text(encoding="utf-8")) if rob_p else None
-        abl_p = next(iter(sorted(rdir.glob("ablation*.json"))), None)
-        ablation = json.loads(abl_p.read_text(encoding="utf-8")) if abl_p else None
+    if not results_dir or not Path(results_dir).exists():
+        raise ValueError(f"Results directory '{results_dir}' does not exist. Real results required.")
+
+    rdir = Path(results_dir)
+    reports = [json.loads(p.read_text(encoding="utf-8"))
+               for p in sorted(rdir.glob("*.json"))
+               if "robustness" not in p.name and "ablation" not in p.name]
+    if not reports:
+        raise ValueError(f"No real result JSON files found in '{results_dir}'. Figures cannot be generated.")
+
+    main = next((r for r in reports if r.get("method", "").startswith("david")), None)
+    rob_p = next(iter(sorted(rdir.glob("robustness*.json"))), None)
+    rob = json.loads(rob_p.read_text(encoding="utf-8")) if rob_p else None
+    abl_p = next(iter(sorted(rdir.glob("ablation*.json"))), None)
+    ablation = json.loads(abl_p.read_text(encoding="utf-8")) if abl_p else None
 
     if reports:
         fig_roc(reports, out_dir)
@@ -305,11 +307,10 @@ def generate_all(results_dir: str | None, out: str, demo: bool):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--results", default="results")
+    ap.add_argument("--results", required=True, help="Path to real results directory containing experiment JSON files")
     ap.add_argument("--out", default="report/figures/generated")
-    ap.add_argument("--demo", action="store_true")
     args = ap.parse_args()
-    generate_all(args.results, args.out, args.demo)
+    generate_all(args.results, args.out)
 
 
 if __name__ == "__main__":

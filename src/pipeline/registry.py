@@ -72,9 +72,11 @@ class Registry:
 
     # ------------------------------------------------------------------ register
     def register(self, *, mode: str, name: str, seed: int, config_hash: str,
-                 meta: Optional[dict] = None) -> dict:
+                 meta: Optional[dict] = None, claim: bool = False,
+                 lease_minutes: float = 45.0) -> dict:
         key = self.key(mode, name, seed)
         result = {}
+        me = worker_id()
 
         def fn(reg):
             reg = reg or {"next_id": 1, "experiments": {}}
@@ -86,25 +88,35 @@ class Registry:
                         f"hash {existing['config_hash']}; this run has {config_hash}. "
                         "Existing results are never overwritten -- give the experiment a new "
                         "name (e.g. append '-v2') if the change is intentional.")
+                if claim and existing.get("status") != "completed":
+                    live = (existing.get("claimed_by") not in (None, me) and existing.get("heartbeat")
+                            and time.time() - float(existing["heartbeat"]) < lease_minutes * 60)
+                    if not live:
+                        existing.update(status="running", claimed_by=me, heartbeat=time.time(),
+                                        updated_at=utcnow())
                 result["entry"] = existing
                 return reg
             exp_id = f"EXP_{reg['next_id']:03d}"
             reg["next_id"] += 1
+            status = "running" if claim else "registered"
+            claimed_by = me if claim else None
+            hb = time.time() if claim else None
             entry = {"exp_id": exp_id, "key": key, "mode": mode, "name": name, "seed": seed,
-                     "config_hash": config_hash, "status": "registered",
+                     "config_hash": config_hash, "status": status,
                      "created_at": utcnow(), "updated_at": utcnow(),
-                     "claimed_by": None, "heartbeat": None, **(meta or {})}
+                     "claimed_by": claimed_by, "heartbeat": hb, **(meta or {})}
             reg["experiments"][exp_id] = entry
             result["entry"] = entry
             result["new"] = True
             return reg
 
-        self.store.update_json(self.path, fn, message=f"registry: register {key}")
+        msg = f"registry: register and claim {key}" if claim else f"registry: register {key}"
+        self.store.update_json(self.path, fn, message=msg)
         entry = result["entry"]
         entry["dir"] = self.exp_dir(entry)
         if result.get("new"):
             log_event("experiment_registered", f"{entry['exp_id']} = {key}",
-                      config_hash=config_hash)
+                      config_hash=config_hash, claimed=claim)
         return entry
 
     # ------------------------------------------------------------------ claims
@@ -133,8 +145,11 @@ class Registry:
             log_event("claim_skipped", f"{exp_id}: {got.get('why')}")
         return got["ok"]
 
-    def heartbeat(self, exp_id: str, **fields):
+    def heartbeat(self, exp_id: str, commit: bool = False, **fields):
         me = worker_id()
+        log_event("heartbeat", f"heartbeat {exp_id}", worker=me, **fields)
+        if not commit or self.store is None:
+            return
 
         def fn(reg):
             e = reg["experiments"][exp_id]

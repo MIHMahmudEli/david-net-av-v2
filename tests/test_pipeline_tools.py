@@ -44,16 +44,13 @@ def test_degradations_shapes():
     assert torch.allclose(audio_noise(a, 100), a)  # 100 dB = passthrough
 
 
-def test_figures_demo(tmp_path):
-    """Demo figure generation produces every expected PDF+PNG pair."""
+def test_figures_refuses_without_results(tmp_path):
+    """Figure generation strictly refuses to run without real results directory."""
+    import pytest
     from src.eval.figures import generate_all
     out = tmp_path / "figs"
-    generate_all(results_dir=None, out=str(out), demo=True)
-    expected = ["results_roc", "results_reliability", "results_confusion",
-                "results_robustness", "results_ablation", "results_localization"]
-    for name in expected:
-        assert (out / f"{name}.pdf").exists(), name
-        assert (out / f"{name}.png").exists(), name
+    with pytest.raises(ValueError, match="Real results required"):
+        generate_all(results_dir=None, out=str(out))
 
 
 def test_figures_from_results_dir(tmp_path):
@@ -66,7 +63,7 @@ def test_figures_from_results_dir(tmp_path):
     (rdir / "robustness_david-net.json").write_text(json.dumps(rob), encoding="utf-8")
     (rdir / "ablation.json").write_text(json.dumps(ablation), encoding="utf-8")
     out = tmp_path / "figs"
-    generate_all(results_dir=str(rdir), out=str(out), demo=False)
+    generate_all(results_dir=str(rdir), out=str(out))
     assert (out / "results_roc.pdf").exists()
     assert (out / "results_robustness.pdf").exists()
     assert (out / "results_ablation.pdf").exists()

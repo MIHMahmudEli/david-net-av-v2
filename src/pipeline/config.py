@@ -13,16 +13,18 @@ import hashlib
 import json
 from typing import Any
 
+from src.pipeline.revision import get_pinned_revision
+
 DEFAULT_CONFIG: dict[str, Any] = {
     # -------------------------------------------------------------- project / storage
     "project": {
         "name": "DAVID-Net-AV",
-        "hf_repo": "MIHMahmudEli/davidnet-q1-experiments",   # persistent source of truth
+        "hf_repo": "MIHMahmudEli/davidnet-experiments",      # persistent source of truth
         "hf_repo_type": "model",
         "hf_data_repo": "MIHMahmudEli/davidnet-q1-data",      # derived features + clip cache
         "hf_private": False,
-        "code_repo": "https://github.com/MIHMahmudEli/david-net-av.git",
-        "code_revision": "main",          # pin to a commit hash for the final runs
+        "code_repo": "https://github.com/MIHMahmudEli/Thesis.git",
+        "code_revision": get_pinned_revision(),       # pin to a commit hash for the final runs
         "work_dir": "/kaggle/working/davidnet",   # small, persistent Kaggle output
         "scratch_dir": "/tmp/davidnet",           # large, per-session (features, caches)
     },
