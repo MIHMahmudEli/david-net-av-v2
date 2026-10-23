@@ -1,0 +1,21 @@
+cff-version: 1.2.0
+message: "If you use DAVID-Net findings or methodology in your research, please cite it as below."
+title: "DAVID-Net: Decoupled Audio-Visual Deepfake Attribution via Subspace Disentanglement and Missing-Modality Tolerance"
+authors:
+  - family-names: "Hossain"
+    given-names: "Moshin Ibna"
+  - family-names: "Khan"
+    given-names: "Alif Hasan"
+  - family-names: "Shakib"
+    given-names: "Shadman"
+  - family-names: "Jam"
+    given-names: "MD. Yeahyea"
+date-released: 2026-10-23
+url: "https://github.com/MIHMahmudEli/david-net-av-v2"
+keywords:
+  - deepfake detection
+  - multimodal forensics
+  - audio-visual attribution
+  - representation disentanglement
+  - missing-modality tolerance
+license: MIT

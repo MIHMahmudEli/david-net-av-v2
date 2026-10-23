@@ -1,0 +1,12 @@
+Experiment,QACP,Sync,Dis.,Loc.,MT,MD,MM,CS,SB,Video AUC,Audio AUC,Clip AUC,Cross-dataset AUC,$\Delta$ clip AUC,Sig. seeds (Holm $p<0.05$)
+davidnet,\checkmark,\checkmark,\checkmark,\checkmark,\checkmark,\checkmark,\checkmark,\checkmark,\checkmark,0.979 $\pm$ 0.003,0.999 $\pm$ 0.002,0.976 $\pm$ 0.006,0.702 $\pm$ 0.008,--,
+davidnet-no_qacp,--,\checkmark,\checkmark,\checkmark,\checkmark,\checkmark,\checkmark,\checkmark,\checkmark,0.981 $\pm$ 0.002,1.000 $\pm$ 0.000,0.983 $\pm$ 0.003,0.701 $\pm$ 0.006,+0.007,0/5
+davidnet-no_sync,\checkmark,--,\checkmark,\checkmark,\checkmark,\checkmark,\checkmark,\checkmark,\checkmark,0.973 $\pm$ 0.005,1.000 $\pm$ 0.000,0.975 $\pm$ 0.011,0.688 $\pm$ 0.016,-0.001,0/5
+davidnet-no_disentangle,\checkmark,\checkmark,--,\checkmark,\checkmark,\checkmark,\checkmark,\checkmark,\checkmark,0.979 $\pm$ 0.002,1.000 $\pm$ 0.000,0.979 $\pm$ 0.001,0.688 $\pm$ 0.012,+0.003,0/5
+davidnet-no_loc,\checkmark,\checkmark,\checkmark,--,\checkmark,\checkmark,\checkmark,\checkmark,\checkmark,0.980 $\pm$ 0.004,1.000 $\pm$ 0.000,0.981 $\pm$ 0.004,0.687 $\pm$ 0.012,+0.006,0/5
+davidnet-single_task,\checkmark,\checkmark,\checkmark,--,--,\checkmark,\checkmark,\checkmark,\checkmark,0.978 $\pm$ 0.003,1.000 $\pm$ 0.000,0.978 $\pm$ 0.005,0.700 $\pm$ 0.018,+0.003,0/5
+davidnet-no_moddrop,\checkmark,\checkmark,\checkmark,\checkmark,\checkmark,--,\checkmark,\checkmark,\checkmark,0.980 $\pm$ 0.003,1.000 $\pm$ 0.000,0.981 $\pm$ 0.004,0.693 $\pm$ 0.021,+0.005,0/5
+davidnet-compose_quad,\checkmark,\checkmark,\checkmark,\checkmark,\checkmark,\checkmark,\checkmark,\checkmark,\checkmark,0.979 $\pm$ 0.004,1.000 $\pm$ 0.000,0.978 $\pm$ 0.003,0.706 $\pm$ 0.018,+0.003,0/5
+davidnet-qacp_no_mismatch,\checkmark,\checkmark,\checkmark,\checkmark,\checkmark,\checkmark,--,\checkmark,\checkmark,0.976 $\pm$ 0.003,1.000 $\pm$ 0.000,0.977 $\pm$ 0.003,0.698 $\pm$ 0.007,+0.001,0/5
+davidnet-qacp_no_copysynth,\checkmark,\checkmark,\checkmark,\checkmark,\checkmark,\checkmark,\checkmark,--,\checkmark,0.980 $\pm$ 0.003,0.999 $\pm$ 0.001,0.979 $\pm$ 0.006,0.693 $\pm$ 0.008,+0.003,0/5
+davidnet-qacp_no_selfblend,\checkmark,\checkmark,\checkmark,\checkmark,\checkmark,\checkmark,\checkmark,\checkmark,--,0.977 $\pm$ 0.006,1.000 $\pm$ 0.001,0.978 $\pm$ 0.006,0.701 $\pm$ 0.009,+0.002,0/5

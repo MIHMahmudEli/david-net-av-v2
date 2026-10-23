@@ -1,0 +1,24 @@
+app:
+  name: davidnet-api
+services:
+  - name: davidnet-api
+    type: web
+    docker:
+      dockerfile: api/Dockerfile
+    ports:
+      - port: 7860
+        path: /
+    routes:
+      - path: /
+        port: 7860
+    env:
+      - key: DAVID_HF_REPO
+        value: MIHMahmudEli/davidnet-q1-experiments
+      - key: DAVID_HF_SUBFOLDER
+        value: experiments/EXP_011_davidnet_s42/best_model
+    regions:
+      - fra
+    instance_type: nano
+    scalings:
+      - min: 1
+        max: 1

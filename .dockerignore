@@ -1,0 +1,74 @@
+# Python cache and compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.pyd
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Jupyter notebooks (not needed for serving)
+*.ipynb
+.ipynb_checkpoints/
+
+# Git and CI
+.git/
+.github/
+.gitignore
+
+# Kaggle orchestration and training scripts (not needed for inference)
+.kaggle_orchestrator/
+scripts/
+experiments/
+results/
+
+# Large training data
+data/
+datasets/
+*.h5
+*.hdf5
+
+# Report / LaTeX (not needed in container)
+report/
+*.tex
+*.bib
+*.pdf
+*.log
+*.aux
+*.toc
+*.fls
+*.fdb_latexmk
+
+# Test and dev files
+tests/
+*.test.py
+conftest.py
+
+# Docker files (already baked)
+.dockerignore
+
+# Environment and secrets
+.env
+*.env
+
+# Large media test files
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.wav
+*.mp3
+*.flac
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
