@@ -263,7 +263,7 @@ DAVID-Net is designed strictly for defensive digital forensics, news authenticit
 ```bibtex
 @article{hossain2026davidnet,
   title={DAVID-Net: Decoupled Audio-Visual Deepfake Attribution via Subspace Disentanglement and Missing-Modality Tolerance},
-  author={Hossain, Moshin Ibna and Khan, Alif Hasan and Shakib, Shadman and Jam, MD. Yeahyea},
+  author={Hossain, Moshin Ibna and Khan, Alif Hasan and Shakib, Shadman and Jam, MD. Yeahyea and Hasan, Mohammad Mahmudul},
   journal={arXiv preprint},
   year={2026}
 }
