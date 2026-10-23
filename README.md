@@ -205,10 +205,14 @@ python -m src.training.train --config configs/david_net.yaml
 
 ### Benchmark Evaluation
 
-Evaluate on a manifest split (reporting Clip AUC, Modality AUCs, and Quadrant Macro-$F_1$):
+Evaluate on held-out test split (reporting Clip AUC, Modality AUCs, and Quadrant Macro-$F_1$):
 
 ```bash
-python -m src.eval.evaluate --config configs/david_net.yaml --manifest src/data/splits/train.jsonl
+# Evaluate on held-out test partition:
+python -m src.eval.evaluate --config configs/david_net.yaml --manifest src/data/splits/test.jsonl
+
+# For evaluation with media files, specify --root-dir:
+python -m src.eval.evaluate --config configs/david_net.yaml --manifest src/data/splits/test.jsonl --root-dir /path/to/FakeAVCeleb_v1.2
 ```
 
 ---
